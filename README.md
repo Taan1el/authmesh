@@ -12,7 +12,7 @@
 
 ---
 
-## ⚡ 2-Minute Overview
+## ⚡ 2-Minute Product Overview
 **AuthMesh** is an enterprise-grade multi-tenant authorization gateway and credential governance platform. Built with zero-trust architectural principles, it provides fine-grained Role-Based Access Control (RBAC), cryptographically hashed API keys, sliding-window rate limiting, and an immutable, SHA-256 blockchain-style audit ledger for Nordic FinTech organizations.
 
 ### Core Capabilities
