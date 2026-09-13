@@ -283,4 +283,133 @@ describe('AuthMesh Security Gateway & RBAC Engine', () => {
       expect(res.body.data.security_score).toBeGreaterThanOrEqual(70);
     });
   });
+
+  describe('Input validation', () => {
+    it('rejects user creation with a malformed email and does not create a row', async () => {
+      const before = await request(app).get('/api/users');
+
+      const res = await request(app).post('/api/users').send({
+        name: 'Bad Email',
+        email: 'not-an-email',
+        role: 'developer',
+      });
+
+      expect(res.status).toBe(400);
+      expect(res.body.success).toBe(false);
+      expect(res.body.error).toMatch(/email/i);
+
+      const after = await request(app).get('/api/users');
+      expect(after.body.data.length).toBe(before.body.data.length);
+    });
+
+    it('rejects user creation with an unknown role', async () => {
+      const res = await request(app).post('/api/users').send({
+        name: 'Bad Role',
+        email: 'bad.role@example.com',
+        role: 'superuser',
+      });
+
+      expect(res.status).toBe(400);
+      expect(res.body.error).toMatch(/role/i);
+    });
+
+    it('rejects a duplicate email address', async () => {
+      const listRes = await request(app).get('/api/users');
+      const existingEmail = listRes.body.data[0].email;
+
+      const res = await request(app).post('/api/users').send({
+        name: 'Duplicate',
+        email: existingEmail,
+        role: 'viewer',
+      });
+
+      expect(res.status).toBe(400);
+      expect(res.body.error).toMatch(/already exists/i);
+    });
+
+    it('returns 404, not a silent success, when updating the role of an unknown user', async () => {
+      const res = await request(app)
+        .patch('/api/users/does-not-exist/role')
+        .send({ role: 'admin' });
+
+      expect(res.status).toBe(404);
+      expect(res.body.success).toBe(false);
+    });
+
+    it('returns 404 when suspending an unknown user', async () => {
+      const res = await request(app)
+        .patch('/api/users/does-not-exist/status')
+        .send({ status: 'suspended' });
+
+      expect(res.status).toBe(404);
+    });
+
+    it('rejects a role update to an unrecognized role name', async () => {
+      const listRes = await request(app).get('/api/users');
+      const user = listRes.body.data[0];
+
+      const res = await request(app)
+        .patch(`/api/users/${user.id}/role`)
+        .send({ role: 'god-mode' });
+
+      expect(res.status).toBe(400);
+    });
+
+    it('returns 404 when updating permissions for an unknown role', async () => {
+      const res = await request(app)
+        .put('/api/roles/not-a-role/permissions')
+        .send({ permissions: ['users:read'] });
+
+      expect(res.status).toBe(404);
+    });
+
+    it('rejects malformed permission strings', async () => {
+      const res = await request(app)
+        .put('/api/roles/viewer/permissions')
+        .send({ permissions: ['not a permission!!'] });
+
+      expect(res.status).toBe(400);
+    });
+
+    it('rejects API key creation with an empty scopes array', async () => {
+      const res = await request(app).post('/api/keys').send({
+        name: 'Empty Scope Key',
+        scopes: [],
+      });
+
+      expect(res.status).toBe(400);
+    });
+
+    it('clamps an out-of-range rate limit instead of storing it as-is', async () => {
+      const res = await request(app).post('/api/keys').send({
+        name: 'Huge RPM Key',
+        scopes: ['users:read'],
+        rate_limit_rpm: 999999999,
+      });
+
+      expect(res.status).toBe(201);
+      expect(res.body.data.rate_limit_rpm).toBeLessThanOrEqual(10000);
+    });
+
+    it('returns 404 when revoking an unknown API key', async () => {
+      const res = await request(app).delete('/api/keys/does-not-exist');
+      expect(res.status).toBe(404);
+    });
+
+    it('falls back to a default page size when the audit limit is not a number', async () => {
+      const res = await request(app).get('/api/audit?limit=not-a-number');
+      expect(res.status).toBe(200);
+      expect(Array.isArray(res.body.data)).toBe(true);
+    });
+
+    it('never leaks a raw error message or stack trace to the client', async () => {
+      const res = await request(app).post('/api/users').send({
+        name: 'X',
+        email: 'bad',
+        role: 'owner',
+      });
+
+      expect(res.body.error).not.toMatch(/at Object|at Module|\.ts:\d+|\.js:\d+/);
+    });
+  });
 });

@@ -1,6 +1,8 @@
 import { Request, Response } from 'express';
 import { AuthService } from '../services/auth.service.js';
 import { TenantService } from '../services/tenant.service.js';
+import { badRequest, sendError } from '../utils/http-error.js';
+import { isNonEmptyString } from '../utils/validation.js';
 
 export class AuthController {
   constructor(
@@ -10,10 +12,12 @@ export class AuthController {
 
   evaluate = (req: Request, res: Response): void => {
     try {
-      const { token, user_id, permission, resource } = req.body;
-      if (!permission || !resource) {
-        res.status(400).json({ success: false, error: 'permission and resource are required' });
-        return;
+      const { token, user_id, permission, resource } = req.body ?? {};
+      if (!isNonEmptyString(permission) || !isNonEmptyString(resource)) {
+        throw badRequest('permission and resource are required');
+      }
+      if (!isNonEmptyString(token) && !isNonEmptyString(user_id)) {
+        throw badRequest('either token or user_id is required');
       }
 
       const clientIp = (req.headers['x-forwarded-for'] as string) || req.socket.remoteAddress || '127.0.0.1';
@@ -26,8 +30,8 @@ export class AuthController {
       );
 
       res.json({ success: true, data: result });
-    } catch (err: any) {
-      res.status(500).json({ success: false, error: err.message });
+    } catch (err) {
+      sendError(res, err);
     }
   };
 
@@ -35,8 +39,8 @@ export class AuthController {
     try {
       const verification = this.tenantService.verifyAuditChain();
       res.json({ success: true, data: verification });
-    } catch (err: any) {
-      res.status(500).json({ success: false, error: err.message });
+    } catch (err) {
+      sendError(res, err);
     }
   };
 }

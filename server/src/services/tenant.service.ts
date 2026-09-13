@@ -12,6 +12,8 @@ import {
   TenantSecurityMetrics,
   User,
 } from '../../../shared/types.js';
+import { badRequest, notFound } from '../utils/http-error.js';
+import { isValidEmail, isValidRoleName, ROLE_NAMES } from '../utils/validation.js';
 
 export class TenantService {
   constructor(
@@ -26,6 +28,16 @@ export class TenantService {
   }
 
   createUser(dto: CreateUserDto, actorName = 'Admin'): User {
+    if (!isValidEmail(dto.email)) {
+      throw badRequest('email must be a valid email address');
+    }
+    if (!isValidRoleName(dto.role)) {
+      throw badRequest(`role must be one of: ${ROLE_NAMES.join(', ')}`);
+    }
+    if (this.userRepo.getUserByEmail(dto.email)) {
+      throw badRequest('a user with this email already exists');
+    }
+
     const created = this.userRepo.createUser(dto);
     this.auditRepo.recordAuditEvent({
       actor_type: 'user',
@@ -40,6 +52,13 @@ export class TenantService {
   }
 
   updateUserRole(userId: string, role: RoleName, actorName = 'Admin'): User {
+    if (!this.userRepo.getUserById(userId)) {
+      throw notFound('User not found');
+    }
+    if (!isValidRoleName(role)) {
+      throw badRequest(`role must be one of: ${ROLE_NAMES.join(', ')}`);
+    }
+
     const updated = this.userRepo.updateUserRole(userId, role);
     this.auditRepo.recordAuditEvent({
       actor_type: 'user',
@@ -54,6 +73,10 @@ export class TenantService {
   }
 
   updateUserStatus(userId: string, status: 'active' | 'suspended', actorName = 'Admin'): User {
+    if (!this.userRepo.getUserById(userId)) {
+      throw notFound('User not found');
+    }
+
     const updated = this.userRepo.updateUserStatus(userId, status);
     this.auditRepo.recordAuditEvent({
       actor_type: 'user',
@@ -72,6 +95,10 @@ export class TenantService {
   }
 
   updateRolePermissions(name: RoleName, permissions: string[], actorName = 'Admin'): Role {
+    if (!this.roleRepo.getRoleByName(name)) {
+      throw notFound('Role not found');
+    }
+
     const updated = this.roleRepo.updateRolePermissions(name, permissions);
     this.auditRepo.recordAuditEvent({
       actor_type: 'user',
@@ -94,6 +121,10 @@ export class TenantService {
     dto: CreateApiKeyDto,
     actorName = 'Admin'
   ): ApiKey & { plaintext_token: string } {
+    if (!this.userRepo.getUserById(createdBy)) {
+      throw badRequest('createdBy must reference an existing user');
+    }
+
     const result = this.apiKeyRepo.createApiKey(createdBy, dto);
     this.auditRepo.recordAuditEvent({
       actor_type: 'user',
@@ -108,6 +139,10 @@ export class TenantService {
   }
 
   revokeApiKey(keyId: string, actorName = 'Admin'): ApiKey {
+    if (!this.apiKeyRepo.getApiKeyById(keyId)) {
+      throw notFound('API key not found');
+    }
+
     const key = this.apiKeyRepo.revokeApiKey(keyId);
     this.auditRepo.recordAuditEvent({
       actor_type: 'user',

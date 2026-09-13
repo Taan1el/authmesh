@@ -37,10 +37,11 @@ export function createApp(dbPath?: string, shouldSeed = true): AppContext {
     });
   }
 
-  // Error handling middleware
-  app.use((err: any, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
+  // Error handling middleware. Errors are logged on the server only; the
+  // client never sees raw error text or a stack trace.
+  app.use((err: unknown, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
     console.error('Unhandled server error:', err);
-    res.status(500).json({ success: false, error: err.message || 'Internal Server Error' });
+    res.status(500).json({ success: false, error: 'Internal server error' });
   });
 
   return { app, db };
