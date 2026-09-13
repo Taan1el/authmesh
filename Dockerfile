@@ -20,13 +20,17 @@ FROM base AS runner
 ENV NODE_ENV=production
 ENV PORT=4000
 
-COPY package.json ./
-COPY server/package.json ./server/
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/server/dist ./server/dist
-COPY --from=builder /app/shared ./shared
-COPY --from=builder /app/client/dist ./client/dist
+COPY --chown=node:node package.json ./
+COPY --chown=node:node server/package.json ./server/
+COPY --from=builder --chown=node:node /app/node_modules ./node_modules
+COPY --from=builder --chown=node:node /app/server/dist ./server/dist
+COPY --from=builder --chown=node:node /app/shared ./shared
+COPY --from=builder --chown=node:node /app/client/dist ./client/dist
+
+RUN mkdir -p /app/server/data && chown -R node:node /app/server/data
 
 EXPOSE 4000
+WORKDIR /app/server
+USER node
 
-CMD ["node", "server/dist/index.js"]
+CMD ["node", "dist/index.js"]
