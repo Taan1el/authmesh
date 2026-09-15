@@ -142,6 +142,22 @@ describe('AuthMesh Security Gateway & RBAC Engine', () => {
       const ownerRole = res.body.data.find((r: any) => r.name === 'owner');
       expect(ownerRole.permissions).toContain('*');
     });
+
+    it('updates a role permission set and persists the change', async () => {
+      const res = await request(app)
+        .put('/api/roles/viewer/permissions')
+        .send({ permissions: ['users:read', 'billing:*'] });
+
+      expect(res.status).toBe(200);
+      expect(res.body.data.permissions).toEqual(['users:read', 'billing:*']);
+
+      const listRes = await request(app).get('/api/roles');
+      const viewerRole = listRes.body.data.find((r: any) => r.name === 'viewer');
+      expect(viewerRole.permissions).toEqual(['users:read', 'billing:*']);
+
+      const auditRes = await request(app).get('/api/audit?limit=5');
+      expect(auditRes.body.data.some((a: any) => a.action === 'role.permissions_updated')).toBe(true);
+    });
   });
 
   describe('API Key Cryptographic Token Generation & Revocation', () => {
