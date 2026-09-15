@@ -10,15 +10,18 @@ jobs:
   test-and-verify:
     name: Build, Lint & Automated Tests
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [22.x, 24.x]
 
     steps:
       - name: Check out repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
-      - name: Set up Node.js 24
-        uses: actions/setup-node@v4
+      - name: Set up Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v7
         with:
-          node-version: 24
+          node-version: ${{ matrix.node-version }}
           cache: 'npm'
 
       - name: Install dependencies
@@ -32,3 +35,13 @@ jobs:
 
       - name: Build client and server bundles
         run: npm run build
+
+  docker:
+    name: Docker Build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+
+      - name: Build container image
+        run: docker build -t authmesh:ci .

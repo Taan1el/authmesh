@@ -3,18 +3,31 @@
   "version": "1.0.0",
   "private": true,
   "type": "module",
-  "description": "Multi-Tenant RBAC Security Gateway, Scoped API Key Engine & Cryptographically Verified Audit Ledger",
+  "description": "Multi-tenant RBAC gateway with scoped API keys, sliding-window rate limiting, and a cryptographically chained audit log",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Taan1el/authmesh.git"
+  },
+  "homepage": "https://taan1el.github.io/authmesh/",
+  "bugs": {
+    "url": "https://github.com/Taan1el/authmesh/issues"
+  },
+  "engines": {
+    "node": ">=22.5.0"
+  },
   "workspaces": [
     "server",
     "client"
   ],
   "scripts": {
+    "dev": "concurrently -n server,client -c blue,green \"npm:dev:server\" \"npm:dev:client\"",
     "dev:server": "npm run dev --workspace=server",
     "dev:client": "npm run dev --workspace=client",
-    "dev": "npm run dev:server",
     "build:server": "npm run build --workspace=server",
     "build:client": "npm run build --workspace=client",
     "build": "npm run build:server && npm run build:client",
+    "build:pages": "npm run build:pages --workspace=client",
     "test:server": "npm run test --workspace=server",
     "test:client": "npm run test --workspace=client",
     "test": "npm run test:server && npm run test:client",
@@ -23,6 +36,7 @@
     "lint": "npm run lint:server && npm run lint:client"
   },
   "devDependencies": {
+    "concurrently": "^10.0.5",
     "typescript": "^5.8.2"
   }
 }
