@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { CreateUserDto, RoleName, User } from '../../../shared/types';
 
 interface UserDirectoryProps {
@@ -29,6 +29,23 @@ export const UserDirectory: React.FC<UserDirectoryProps> = ({
   const [role, setRole] = useState<RoleName>('developer');
   const [mfaEnabled, setMfaEnabled] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const nameInputRef = useRef<HTMLInputElement>(null);
+
+  const closeModal = () => setIsModalOpen(false);
+
+  // Standard modal keyboard behavior: Escape closes it, and focus moves to
+  // the first field so keyboard and screen reader users land somewhere
+  // useful instead of on whatever was focused on the page behind it.
+  useEffect(() => {
+    if (!isModalOpen) return;
+    nameInputRef.current?.focus();
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') closeModal();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isModalOpen]);
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -61,12 +78,12 @@ export const UserDirectory: React.FC<UserDirectoryProps> = ({
         <table className="data-table">
           <thead>
             <tr>
-              <th>Member</th>
-              <th>Email</th>
-              <th>Assigned RBAC Role</th>
-              <th>MFA Security</th>
-              <th>Status</th>
-              <th>Actions</th>
+              <th scope="col">Member</th>
+              <th scope="col">Email</th>
+              <th scope="col">Assigned RBAC Role</th>
+              <th scope="col">MFA Security</th>
+              <th scope="col">Status</th>
+              <th scope="col">Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -82,6 +99,7 @@ export const UserDirectory: React.FC<UserDirectoryProps> = ({
                 <td>
                   <select
                     className="select-mini"
+                    aria-label={`Change role for ${u.name}`}
                     value={u.role}
                     onChange={(e) => onUpdateRole(u.id, e.target.value as RoleName)}
                   >
@@ -124,19 +142,27 @@ export const UserDirectory: React.FC<UserDirectoryProps> = ({
 
       {/* Invite Member Modal */}
       {isModalOpen && (
-        <div className="modal-overlay">
-          <div className="modal-content">
+        <div className="modal-overlay" onClick={closeModal}>
+          <div
+            className="modal-content"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="invite-modal-title"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="modal-header">
-              <h3>Invite Organization Member</h3>
-              <button className="btn-close" onClick={() => setIsModalOpen(false)}>
+              <h3 id="invite-modal-title">Invite Organization Member</h3>
+              <button className="btn-close" onClick={closeModal} aria-label="Close">
                 ×
               </button>
             </div>
 
             <form onSubmit={handleCreate} className="modal-body">
               <div className="form-group">
-                <label>Full Name</label>
+                <label htmlFor="invite-name-input">Full Name</label>
                 <input
+                  id="invite-name-input"
+                  ref={nameInputRef}
                   type="text"
                   placeholder="e.g. Kaspar Kuus"
                   value={name}
@@ -147,8 +173,9 @@ export const UserDirectory: React.FC<UserDirectoryProps> = ({
               </div>
 
               <div className="form-group">
-                <label>Corporate Email</label>
+                <label htmlFor="invite-email-input">Corporate Email</label>
                 <input
+                  id="invite-email-input"
                   type="email"
                   placeholder="e.g. kaspar.kuus@nordicfintech.ee"
                   value={email}
@@ -159,8 +186,9 @@ export const UserDirectory: React.FC<UserDirectoryProps> = ({
               </div>
 
               <div className="form-group">
-                <label>Initial Role Assignment</label>
+                <label htmlFor="invite-role-select">Initial Role Assignment</label>
                 <select
+                  id="invite-role-select"
                   value={role}
                   onChange={(e) => setRole(e.target.value as RoleName)}
                   className="form-control"
@@ -185,11 +213,7 @@ export const UserDirectory: React.FC<UserDirectoryProps> = ({
               </div>
 
               <div className="modal-footer">
-                <button
-                  type="button"
-                  className="btn btn-secondary"
-                  onClick={() => setIsModalOpen(false)}
-                >
+                <button type="button" className="btn btn-secondary" onClick={closeModal}>
                   Cancel
                 </button>
                 <button type="submit" className="btn btn-primary" disabled={isSubmitting}>

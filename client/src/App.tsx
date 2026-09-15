@@ -161,32 +161,52 @@ export const App: React.FC = () => {
         />
 
         {/* Navigation Tabs */}
-        <div className="main-nav-tabs">
+        <div className="main-nav-tabs" role="tablist" aria-label="AuthMesh views">
           <button
+            id="tab-sandbox"
+            role="tab"
+            aria-selected={activeTab === 'sandbox'}
+            aria-controls="panel-sandbox"
             className={`nav-tab ${activeTab === 'sandbox' ? 'active' : ''}`}
             onClick={() => setActiveTab('sandbox')}
           >
             🧪 Interactive Security Sandbox
           </button>
           <button
+            id="tab-matrix"
+            role="tab"
+            aria-selected={activeTab === 'matrix'}
+            aria-controls="panel-matrix"
             className={`nav-tab ${activeTab === 'matrix' ? 'active' : ''}`}
             onClick={() => setActiveTab('matrix')}
           >
             🛡️ RBAC Policy Matrix
           </button>
           <button
+            id="tab-keys"
+            role="tab"
+            aria-selected={activeTab === 'keys'}
+            aria-controls="panel-keys"
             className={`nav-tab ${activeTab === 'keys' ? 'active' : ''}`}
             onClick={() => setActiveTab('keys')}
           >
             🔑 API Key Vault
           </button>
           <button
+            id="tab-users"
+            role="tab"
+            aria-selected={activeTab === 'users'}
+            aria-controls="panel-users"
             className={`nav-tab ${activeTab === 'users' ? 'active' : ''}`}
             onClick={() => setActiveTab('users')}
           >
             👥 Tenant Identities ({users.length})
           </button>
           <button
+            id="tab-audit"
+            role="tab"
+            aria-selected={activeTab === 'audit'}
+            aria-controls="panel-audit"
             className={`nav-tab ${activeTab === 'audit' ? 'active' : ''}`}
             onClick={() => setActiveTab('audit')}
           >
@@ -196,7 +216,7 @@ export const App: React.FC = () => {
 
         {/* Tab Views */}
         {activeTab === 'sandbox' && (
-          <div className="tab-view-container">
+          <div className="tab-view-container" id="panel-sandbox" role="tabpanel" aria-labelledby="tab-sandbox">
             <SecuritySandbox
               users={users}
               apiKeys={apiKeys}
@@ -211,13 +231,13 @@ export const App: React.FC = () => {
         )}
 
         {activeTab === 'matrix' && (
-          <div className="tab-view-container">
+          <div className="tab-view-container" id="panel-matrix" role="tabpanel" aria-labelledby="tab-matrix">
             <PermissionMatrix roles={roles} />
           </div>
         )}
 
         {activeTab === 'keys' && (
-          <div className="tab-view-container">
+          <div className="tab-view-container" id="panel-keys" role="tabpanel" aria-labelledby="tab-keys">
             <ApiKeyVault
               apiKeys={apiKeys}
               onCreateKey={handleCreateKey}
@@ -227,7 +247,7 @@ export const App: React.FC = () => {
         )}
 
         {activeTab === 'users' && (
-          <div className="tab-view-container">
+          <div className="tab-view-container" id="panel-users" role="tabpanel" aria-labelledby="tab-users">
             <UserDirectory
               users={users}
               onUpdateRole={handleUpdateRole}
@@ -238,7 +258,7 @@ export const App: React.FC = () => {
         )}
 
         {activeTab === 'audit' && (
-          <div className="tab-view-container">
+          <div className="tab-view-container" id="panel-audit" role="tabpanel" aria-labelledby="tab-audit">
             <AuditLedgerFeed
               events={auditEvents}
               onVerifyChain={handleVerifyChain}

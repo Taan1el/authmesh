@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { ApiKey, User } from '../../../shared/types';
 import { api } from '../services/index';
 
@@ -35,6 +35,21 @@ const TEST_ENDPOINTS = [
   },
 ];
 
+// Maps an evaluation's HTTP status to a badge label and CSS modifier. Kept
+// as an explicit table instead of a status/429/else ternary so 401
+// (unrecognized token) does not get mislabeled as "FORBIDDEN" (403, a
+// recognized but insufficiently scoped token or role).
+const STATUS_LABELS: Record<number, { label: string; css: string }> = {
+  200: { label: 'OK', css: '200' },
+  401: { label: 'UNAUTHORIZED', css: '401' },
+  403: { label: 'FORBIDDEN', css: '403' },
+  429: { label: 'TOO MANY REQUESTS', css: '429' },
+};
+
+function describeStatus(status: number): { label: string; css: string } {
+  return STATUS_LABELS[status] ?? { label: 'ERROR', css: '403' };
+}
+
 export const SecuritySandbox: React.FC<SecuritySandboxProps> = ({
   users,
   apiKeys,
@@ -50,6 +65,19 @@ export const SecuritySandbox: React.FC<SecuritySandboxProps> = ({
     headers: Record<string, string>;
     data: any;
   } | null>(null);
+
+  // `users` arrives asynchronously after the initial render (App.tsx loads
+  // it from the API), so the useState default above is usually empty on
+  // first paint even though the dropdown visually shows the first option.
+  // Keep the selection in sync once users load, and if the selected user
+  // ever stops existing, so "Dispatch Request" never silently sends an
+  // empty user_id for what looks like a selected user.
+  useEffect(() => {
+    if (users.length === 0) return;
+    if (!users.some((u) => u.id === selectedUserId)) {
+      setSelectedUserId(users[0].id);
+    }
+  }, [users, selectedUserId]);
 
   const handleSimulate = async () => {
     setIsLoading(true);
@@ -100,12 +128,13 @@ export const SecuritySandbox: React.FC<SecuritySandboxProps> = ({
 
       <div className="sandbox-grid">
         <div className="sandbox-controls">
-          <div className="form-group mb-3">
-            <label>Authentication Identity Source</label>
+          <fieldset className="form-group mb-3">
+            <legend>Authentication Identity Source</legend>
             <div className="tab-pills">
               <button
                 type="button"
                 className={`tab-btn ${authMode === 'user' ? 'active' : ''}`}
+                aria-pressed={authMode === 'user'}
                 onClick={() => setAuthMode('user')}
               >
                 Tenant User (x-user-id)
@@ -113,17 +142,19 @@ export const SecuritySandbox: React.FC<SecuritySandboxProps> = ({
               <button
                 type="button"
                 className={`tab-btn ${authMode === 'custom_token' ? 'active' : ''}`}
+                aria-pressed={authMode === 'custom_token'}
                 onClick={() => setAuthMode('custom_token')}
               >
                 API Key Bearer Token
               </button>
             </div>
-          </div>
+          </fieldset>
 
           {authMode === 'user' ? (
             <div className="form-group mb-3">
-              <label>Simulated User</label>
+              <label htmlFor="sandbox-user-select">Simulated User</label>
               <select
+                id="sandbox-user-select"
                 value={selectedUserId}
                 onChange={(e) => setSelectedUserId(e.target.value)}
                 className="form-control"
@@ -137,8 +168,9 @@ export const SecuritySandbox: React.FC<SecuritySandboxProps> = ({
             </div>
           ) : (
             <div className="form-group mb-3">
-              <label>API Key Bearer Token</label>
+              <label htmlFor="sandbox-token-input">API Key Bearer Token</label>
               <input
+                id="sandbox-token-input"
                 type="text"
                 value={customToken}
                 onChange={(e) => setCustomToken(e.target.value)}
@@ -180,26 +212,28 @@ export const SecuritySandbox: React.FC<SecuritySandboxProps> = ({
             </div>
           )}
 
-          <div className="form-group mb-4">
-            <label>Target Protected Endpoint</label>
+          <fieldset className="form-group mb-4">
+            <legend>Target Protected Endpoint</legend>
             <div className="endpoints-list">
-              {TEST_ENDPOINTS.map((ep) => (
-                <div
-                  key={ep.path}
-                  className={`endpoint-option ${
-                    selectedEndpoint.path === ep.path && selectedEndpoint.method === ep.method
-                      ? 'selected'
-                      : ''
-                  }`}
-                  onClick={() => setSelectedEndpoint(ep)}
-                >
-                  <span className={`method-badge method-${ep.method}`}>{ep.method}</span>
-                  <span className="font-mono text-xs ep-path">/api/protected/{ep.path}</span>
-                  <span className="required-scope-pill">{ep.required}</span>
-                </div>
-              ))}
+              {TEST_ENDPOINTS.map((ep) => {
+                const isSelected = selectedEndpoint.path === ep.path && selectedEndpoint.method === ep.method;
+                return (
+                  <button
+                    key={ep.path}
+                    type="button"
+                    className={`endpoint-option ${isSelected ? 'selected' : ''}`}
+                    aria-pressed={isSelected}
+                    title={ep.description}
+                    onClick={() => setSelectedEndpoint(ep)}
+                  >
+                    <span className={`method-badge method-${ep.method}`}>{ep.method}</span>
+                    <span className="font-mono text-xs ep-path">/api/protected/{ep.path}</span>
+                    <span className="required-scope-pill">{ep.required}</span>
+                  </button>
+                );
+              })}
             </div>
-          </div>
+          </fieldset>
 
           <div className="sandbox-actions">
             <button className="btn btn-primary" onClick={handleSimulate} disabled={isLoading}>
@@ -221,16 +255,8 @@ export const SecuritySandbox: React.FC<SecuritySandboxProps> = ({
           <div className="output-header">
             <h4>Live Gateway Evaluation Output</h4>
             {lastResult && (
-              <span
-                className={`status-code-badge status-${
-                  lastResult.status === 200
-                    ? '200'
-                    : lastResult.status === 429
-                    ? '429'
-                    : '403'
-                }`}
-              >
-                HTTP {lastResult.status} {lastResult.status === 200 ? 'OK' : lastResult.status === 429 ? 'TOO MANY REQUESTS' : 'FORBIDDEN'}
+              <span className={`status-code-badge status-${describeStatus(lastResult.status).css}`}>
+                HTTP {lastResult.status} {describeStatus(lastResult.status).label}
               </span>
             )}
           </div>

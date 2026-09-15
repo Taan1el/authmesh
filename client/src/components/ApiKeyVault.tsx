@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { ApiKey, CreateApiKeyDto } from '../../../shared/types';
 
 interface ApiKeyVaultProps {
@@ -33,6 +33,24 @@ export const ApiKeyVault: React.FC<ApiKeyVaultProps> = ({
   const [revealedToken, setRevealedToken] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const nameInputRef = useRef<HTMLInputElement>(null);
+
+  // Standard modal keyboard behavior: Escape closes it, and focus moves to
+  // the first field so keyboard and screen reader users land somewhere
+  // useful instead of on whatever was focused on the page behind it.
+  useEffect(() => {
+    if (!isModalOpen) return;
+    nameInputRef.current?.focus();
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') closeModal();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+    // Deliberately only re-runs when the modal opens or closes; closeModal
+    // is stable enough for this component's lifetime that re-binding on
+    // every render would just add noise.
+  }, [isModalOpen]);
 
   const toggleScope = (scope: string) => {
     if (selectedScopes.includes(scope)) {
@@ -92,13 +110,13 @@ export const ApiKeyVault: React.FC<ApiKeyVaultProps> = ({
         <table className="data-table">
           <thead>
             <tr>
-              <th>Name</th>
-              <th>Token Prefix</th>
-              <th>Granted Scopes</th>
-              <th>Quota (RPM)</th>
-              <th>Last Used</th>
-              <th>Status</th>
-              <th>Action</th>
+              <th scope="col">Name</th>
+              <th scope="col">Token Prefix</th>
+              <th scope="col">Granted Scopes</th>
+              <th scope="col">Quota (RPM)</th>
+              <th scope="col">Last Used</th>
+              <th scope="col">Status</th>
+              <th scope="col">Action</th>
             </tr>
           </thead>
           <tbody>
@@ -147,11 +165,17 @@ export const ApiKeyVault: React.FC<ApiKeyVaultProps> = ({
 
       {/* Modal for Key Creation */}
       {isModalOpen && (
-        <div className="modal-overlay">
-          <div className="modal-content">
+        <div className="modal-overlay" onClick={closeModal}>
+          <div
+            className="modal-content"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="apikey-modal-title"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="modal-header">
-              <h3>{revealedToken ? 'Save Your API Key Token' : 'Generate Scoped API Key'}</h3>
-              <button className="btn-close" onClick={closeModal}>
+              <h3 id="apikey-modal-title">{revealedToken ? 'Save Your API Key Token' : 'Generate Scoped API Key'}</h3>
+              <button className="btn-close" onClick={closeModal} aria-label="Close">
                 ×
               </button>
             </div>
@@ -182,8 +206,10 @@ export const ApiKeyVault: React.FC<ApiKeyVaultProps> = ({
             ) : (
               <form onSubmit={handleCreate} className="modal-body">
                 <div className="form-group">
-                  <label>Key Name / Service Description</label>
+                  <label htmlFor="apikey-name-input">Key Name / Service Description</label>
                   <input
+                    id="apikey-name-input"
+                    ref={nameInputRef}
                     type="text"
                     placeholder="e.g. Stripe Webhook Ingestion Service"
                     value={name}
@@ -193,8 +219,8 @@ export const ApiKeyVault: React.FC<ApiKeyVaultProps> = ({
                   />
                 </div>
 
-                <div className="form-group">
-                  <label>Assign Permission Scopes</label>
+                <fieldset className="form-group">
+                  <legend>Assign Permission Scopes</legend>
                   <div className="scope-selection-grid">
                     {AVAILABLE_SCOPES.map((scope) => (
                       <label key={scope} className="scope-checkbox-label">
@@ -207,12 +233,13 @@ export const ApiKeyVault: React.FC<ApiKeyVaultProps> = ({
                       </label>
                     ))}
                   </div>
-                </div>
+                </fieldset>
 
                 <div className="form-row">
                   <div className="form-group">
-                    <label>Rate Limit Quota (RPM)</label>
+                    <label htmlFor="apikey-rpm-input">Rate Limit Quota (RPM)</label>
                     <input
+                      id="apikey-rpm-input"
                       type="number"
                       min="5"
                       max="1000"
@@ -223,8 +250,9 @@ export const ApiKeyVault: React.FC<ApiKeyVaultProps> = ({
                   </div>
 
                   <div className="form-group">
-                    <label>Expiration Period</label>
+                    <label htmlFor="apikey-expiry-select">Expiration Period</label>
                     <select
+                      id="apikey-expiry-select"
                       value={expiryDays}
                       onChange={(e) => setExpiryDays(e.target.value)}
                       className="form-control"

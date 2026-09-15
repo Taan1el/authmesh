@@ -29,21 +29,24 @@ export const AuditLedgerFeed: React.FC<AuditLedgerFeedProps> = ({
           <p className="subtitle">
             Immutable SHA-256 block ledger tracking all access decisions, token usage, and administrative actions
           </p>
-          <div className="tab-pills mt-2">
+          <div className="tab-pills mt-2" role="group" aria-label="Filter audit events">
             <button
               className={`tab-btn ${filter === 'all' ? 'active' : ''}`}
+              aria-pressed={filter === 'all'}
               onClick={() => setFilter('all')}
             >
               All Events ({events.length})
             </button>
             <button
               className={`tab-btn ${filter === 'granted' ? 'active' : ''}`}
+              aria-pressed={filter === 'granted'}
               onClick={() => setFilter('granted')}
             >
               Granted ({events.filter((e) => e.status === 'granted').length})
             </button>
             <button
               className={`tab-btn ${filter === 'denied' ? 'active' : ''}`}
+              aria-pressed={filter === 'denied'}
               onClick={() => setFilter('denied')}
             >
               Denied / Violations ({events.filter((e) => e.status === 'denied').length})
@@ -59,13 +62,13 @@ export const AuditLedgerFeed: React.FC<AuditLedgerFeedProps> = ({
         <table className="data-table">
           <thead>
             <tr>
-              <th>Timestamp</th>
-              <th>Actor</th>
-              <th>Action</th>
-              <th>Resource</th>
-              <th>Outcome</th>
-              <th>Block SHA-256 Hash</th>
-              <th>Details</th>
+              <th scope="col">Timestamp</th>
+              <th scope="col">Actor</th>
+              <th scope="col">Action</th>
+              <th scope="col">Resource</th>
+              <th scope="col">Outcome</th>
+              <th scope="col">Block SHA-256 Hash</th>
+              <th scope="col">Details</th>
             </tr>
           </thead>
           <tbody>
@@ -107,6 +110,7 @@ export const AuditLedgerFeed: React.FC<AuditLedgerFeedProps> = ({
                   <td>
                     <button
                       className="btn-action btn-secondary"
+                      aria-expanded={expandedId === ev.id}
                       onClick={() => setExpandedId(expandedId === ev.id ? null : ev.id)}
                     >
                       {expandedId === ev.id ? 'Hide' : 'Inspect'}

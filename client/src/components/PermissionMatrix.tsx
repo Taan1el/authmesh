@@ -41,9 +41,9 @@ export const PermissionMatrix: React.FC<PermissionMatrixProps> = ({ roles }) => 
         <table className="data-table matrix-table">
           <thead>
             <tr>
-              <th>Role & Responsibilities</th>
+              <th scope="col">Role & Responsibilities</th>
               {PERMISSION_COLUMNS.map((col) => (
-                <th key={col.key} className="text-center">
+                <th key={col.key} scope="col" className="text-center">
                   {col.label}
                 </th>
               ))}

@@ -115,6 +115,13 @@ describe('AuthMesh Security Gateway Client Dashboard', () => {
 
     expect(screen.getByRole('heading', { name: /AuthMesh/i })).toBeInTheDocument();
     expect(screen.getByText(/Nordic FinTech Labs/i)).toBeInTheDocument();
+
+    // The header content above is static, but App still kicks off its data
+    // load on mount; wait for it to settle so that state update is not left
+    // dangling outside of act() after this test's assertions return.
+    await waitFor(() => {
+      expect(screen.getByText('Security Posture Score')).toBeInTheDocument();
+    });
   });
 
   it('renders security posture score and audit chain status KPI cards', async () => {
