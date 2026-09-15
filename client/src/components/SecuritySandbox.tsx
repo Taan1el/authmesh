@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { ApiKey, User } from '../../../shared/types';
-import { api } from '../services/api';
+import { api } from '../services/index';
 
 interface SecuritySandboxProps {
   users: User[];

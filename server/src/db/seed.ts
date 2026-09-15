@@ -1,6 +1,6 @@
 import { DatabaseSync } from 'node:sqlite';
 import crypto from 'node:crypto';
-import { calculateAuditHash, hashApiKey } from '../utils/crypto.js';
+import { calculateAuditHash, hashApiKey, GENESIS_HASH } from '../utils/crypto.js';
 
 export function seedDatabase(db: DatabaseSync): void {
   const userCount = db.prepare('SELECT COUNT(*) as count FROM users;').get() as { count: number };
@@ -80,7 +80,7 @@ export function seedDatabase(db: DatabaseSync): void {
     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
   `);
 
-  const genesisPrevHash = '0000000000000000000000000000000000000000000000000000000000000000';
+  const genesisPrevHash = GENESIS_HASH;
   const a1Details = JSON.stringify({ description: 'Organization workspace initialized with zero-trust RBAC policies' });
   const a1Hash = calculateAuditHash({
     prev_hash: genesisPrevHash,

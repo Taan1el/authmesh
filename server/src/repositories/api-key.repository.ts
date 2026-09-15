@@ -8,12 +8,7 @@ export class ApiKeyRepository implements IApiKeyRepository {
   constructor(private db: DatabaseSync) {}
 
   listApiKeys(): ApiKey[] {
-    const stmt = this.db.prepare(`
-      SELECT k.*, u.name as creator_name
-      FROM api_keys k
-      LEFT JOIN users u ON k.created_by = u.id
-      ORDER BY k.created_at DESC;
-    `);
+    const stmt = this.db.prepare('SELECT * FROM api_keys ORDER BY created_at DESC;');
     const rows = stmt.all() as any[];
 
     return rows.map((r) => ({

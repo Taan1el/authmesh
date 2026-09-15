@@ -4,6 +4,11 @@ import { sha256Hex } from './sha256.js';
 // Node (stable since Node 19) and in every browser, so this file has no
 // Node-only dependency and can run unmodified in the GitHub Pages demo.
 
+// The hash chained to by the first audit block. Shared so the server's
+// AuditRepository and the demo's in-memory equivalent seed and verify the
+// chain against the exact same starting value.
+export const GENESIS_HASH = '0'.repeat(64);
+
 export function hashApiKey(rawToken: string): string {
   return sha256Hex(rawToken.trim());
 }

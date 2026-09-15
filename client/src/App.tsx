@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { api } from './services/api';
+import { api } from './services/index';
 import {
   User,
   Role,
@@ -16,6 +16,7 @@ import { ApiKeyVault } from './components/ApiKeyVault';
 import { UserDirectory } from './components/UserDirectory';
 import { AuditLedgerFeed } from './components/AuditLedgerFeed';
 import { SecuritySandbox } from './components/SecuritySandbox';
+import { DemoBanner } from './components/DemoBanner';
 import './App.css';
 
 export const App: React.FC = () => {
@@ -123,6 +124,8 @@ export const App: React.FC = () => {
 
   return (
     <div className="app-container">
+      <DemoBanner onReset={loadData} />
+
       {/* Header */}
       <header className="app-header">
         <div className="header-brand">
