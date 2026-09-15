@@ -5,9 +5,9 @@ server/data/
 *.db-*
 *.sqlite
 *.sqlite-*
-.env
-.env.local
+.env*
 !.env.example
+!.env.pages
 *.log
 coverage
 playwright-report
