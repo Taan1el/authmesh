@@ -1,9 +1,10 @@
 import { DatabaseSync } from 'node:sqlite';
 import crypto from 'node:crypto';
 import { ApiKey, CreateApiKeyDto } from '../../../shared/types.js';
+import { IApiKeyRepository } from '../../../shared/repositories.js';
 import { generateApiKey } from '../utils/crypto.js';
 
-export class ApiKeyRepository {
+export class ApiKeyRepository implements IApiKeyRepository {
   constructor(private db: DatabaseSync) {}
 
   listApiKeys(): ApiKey[] {

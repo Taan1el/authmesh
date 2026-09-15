@@ -1,3 +1,6 @@
+// Sliding-window rate limiter. Pure in-memory logic (a Map and Date.now()),
+// so the server and the in-browser GitHub Pages demo both enforce quotas
+// with this exact class instead of two copies that could drift.
 export interface RateLimitResult {
   allowed: boolean;
   limit: number;

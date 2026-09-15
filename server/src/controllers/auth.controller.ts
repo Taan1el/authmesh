@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
-import { AuthService } from '../services/auth.service.js';
-import { TenantService } from '../services/tenant.service.js';
+import { AuthService } from '../../../shared/auth.service.js';
+import { TenantService } from '../../../shared/tenant.service.js';
 import { badRequest, sendError } from '../utils/http-error.js';
 import { isNonEmptyString } from '../utils/validation.js';
 

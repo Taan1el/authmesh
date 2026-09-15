@@ -1,18 +1,20 @@
-import { ApiKeyRepository } from '../repositories/api-key.repository.js';
-import { UserRepository } from '../repositories/user.repository.js';
-import { RoleRepository } from '../repositories/role.repository.js';
-import { AuditRepository } from '../repositories/audit.repository.js';
+import { IApiKeyRepository, IAuditRepository, IRoleRepository, IUserRepository } from './repositories.js';
 import { PolicyService } from './policy.service.js';
 import { RateLimiterService } from './rate-limiter.service.js';
-import { hashApiKey } from '../utils/crypto.js';
-import { AccessEvaluationResult, EvaluateAccessDto } from '../../../shared/types.js';
+import { hashApiKey } from './crypto.js';
+import { AccessEvaluationResult, EvaluateAccessDto } from './types.js';
 
+// The core RBAC decision engine: given a token or a user id, decide whether
+// the requested permission is granted, recording an audit event either way.
+// It only depends on the repository interfaces above, so the server (SQLite
+// repositories) and the GitHub Pages demo (in-memory repositories) evaluate
+// access with this exact class instead of two copies that could drift.
 export class AuthService {
   constructor(
-    private apiKeyRepo: ApiKeyRepository,
-    private userRepo: UserRepository,
-    private roleRepo: RoleRepository,
-    private auditRepo: AuditRepository,
+    private apiKeyRepo: IApiKeyRepository,
+    private userRepo: IUserRepository,
+    private roleRepo: IRoleRepository,
+    private auditRepo: IAuditRepository,
     private policyService: PolicyService,
     private rateLimiter: RateLimiterService
   ) {}

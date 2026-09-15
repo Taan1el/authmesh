@@ -1,7 +1,8 @@
 import { DatabaseSync } from 'node:sqlite';
 import { Role, RoleName } from '../../../shared/types.js';
+import { IRoleRepository } from '../../../shared/repositories.js';
 
-export class RoleRepository {
+export class RoleRepository implements IRoleRepository {
   constructor(private db: DatabaseSync) {}
 
   listRoles(): Role[] {

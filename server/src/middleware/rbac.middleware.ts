@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { AuthService } from '../services/auth.service.js';
+import { AuthService } from '../../../shared/auth.service.js';
 
 export function createRbacMiddleware(authService: AuthService) {
   return function requirePermission(permission: string, resource: string) {

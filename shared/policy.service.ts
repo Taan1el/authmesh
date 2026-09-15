@@ -1,3 +1,6 @@
+// RBAC wildcard policy matching. Pure logic with no Node or browser-only
+// APIs, so the server and the in-browser GitHub Pages demo both evaluate
+// permissions with this exact class instead of two copies that could drift.
 export class PolicyService {
   /**
    * Matches a single scope against a requested permission.

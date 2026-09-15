@@ -1,8 +1,8 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import request from 'supertest';
 import { createApp } from '../src/app.js';
-import { PolicyService } from '../src/services/policy.service.js';
-import { RateLimiterService } from '../src/services/rate-limiter.service.js';
+import { PolicyService } from '../../shared/policy.service.js';
+import { RateLimiterService } from '../../shared/rate-limiter.service.js';
 import { calculateAuditHash, hashApiKey } from '../src/utils/crypto.js';
 
 describe('AuthMesh Security Gateway & RBAC Engine', () => {

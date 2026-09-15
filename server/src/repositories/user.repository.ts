@@ -1,8 +1,9 @@
 import { DatabaseSync } from 'node:sqlite';
 import crypto from 'node:crypto';
 import { User, RoleName, CreateUserDto } from '../../../shared/types.js';
+import { IUserRepository } from '../../../shared/repositories.js';
 
-export class UserRepository {
+export class UserRepository implements IUserRepository {
   constructor(private db: DatabaseSync) {}
 
   listUsers(): User[] {

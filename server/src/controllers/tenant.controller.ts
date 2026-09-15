@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { TenantService } from '../services/tenant.service.js';
+import { TenantService } from '../../../shared/tenant.service.js';
 import { RoleName } from '../../../shared/types.js';
 import { badRequest, sendError } from '../utils/http-error.js';
 import { clampPositiveInt, isNonEmptyString, isValidPermissionList } from '../utils/validation.js';

@@ -1,28 +1,11 @@
 import { Response } from 'express';
+import { HttpError } from '../../../shared/http-error.js';
 
-/**
- * An error safe to show to API clients. Anything thrown that is not an
- * HttpError is treated as unexpected: it gets logged on the server and the
- * client only ever sees a generic message, never the raw error text or a
- * stack trace.
- */
-export class HttpError extends Error {
-  statusCode: number;
-
-  constructor(statusCode: number, message: string) {
-    super(message);
-    this.name = 'HttpError';
-    this.statusCode = statusCode;
-  }
-}
-
-export function badRequest(message: string): HttpError {
-  return new HttpError(400, message);
-}
-
-export function notFound(message: string): HttpError {
-  return new HttpError(404, message);
-}
+// HttpError, badRequest and notFound live in shared/http-error.ts so
+// TenantService and AuthService (also shared) can throw them without a
+// dependency on Express. Re-exported here so existing server imports
+// (controllers, repositories) do not need to change.
+export { HttpError, badRequest, notFound } from '../../../shared/http-error.js';
 
 /**
  * Sends a safe error response. Known, expected errors (HttpError) return

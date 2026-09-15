@@ -1,7 +1,4 @@
-import { UserRepository } from '../repositories/user.repository.js';
-import { RoleRepository } from '../repositories/role.repository.js';
-import { ApiKeyRepository } from '../repositories/api-key.repository.js';
-import { AuditRepository } from '../repositories/audit.repository.js';
+import { IApiKeyRepository, IAuditRepository, IRoleRepository, IUserRepository } from './repositories.js';
 import {
   ApiKey,
   AuditEvent,
@@ -11,16 +8,20 @@ import {
   RoleName,
   TenantSecurityMetrics,
   User,
-} from '../../../shared/types.js';
-import { badRequest, notFound } from '../utils/http-error.js';
-import { isValidEmail, isValidRoleName, ROLE_NAMES } from '../utils/validation.js';
+} from './types.js';
+import { badRequest, notFound } from './http-error.js';
+import { isValidEmail, isValidRoleName, ROLE_NAMES } from './validation.js';
 
+// Tenant administration: users, roles, API keys, and the audit ledger. Only
+// depends on the repository interfaces above, so the server (SQLite
+// repositories) and the GitHub Pages demo (in-memory repositories) run this
+// exact class instead of two copies that could drift.
 export class TenantService {
   constructor(
-    private userRepo: UserRepository,
-    private roleRepo: RoleRepository,
-    private apiKeyRepo: ApiKeyRepository,
-    private auditRepo: AuditRepository
+    private userRepo: IUserRepository,
+    private roleRepo: IRoleRepository,
+    private apiKeyRepo: IApiKeyRepository,
+    private auditRepo: IAuditRepository
   ) {}
 
   listUsers(): User[] {

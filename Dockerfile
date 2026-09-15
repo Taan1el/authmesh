@@ -23,8 +23,10 @@ ENV PORT=4000
 COPY --chown=node:node package.json ./
 COPY --chown=node:node server/package.json ./server/
 COPY --from=builder --chown=node:node /app/node_modules ./node_modules
+# server/dist already contains the compiled shared/ modules (tsc's rootDir
+# spans both server/src and ../shared, see server/tsconfig.json), so nothing
+# else needs to be copied from the shared/ source directory.
 COPY --from=builder --chown=node:node /app/server/dist ./server/dist
-COPY --from=builder --chown=node:node /app/shared ./shared
 COPY --from=builder --chown=node:node /app/client/dist ./client/dist
 
 RUN mkdir -p /app/server/data && chown -R node:node /app/server/data
@@ -33,4 +35,4 @@ EXPOSE 4000
 WORKDIR /app/server
 USER node
 
-CMD ["node", "dist/index.js"]
+CMD ["node", "dist/server/src/index.js"]

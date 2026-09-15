@@ -1,11 +1,12 @@
 import { DatabaseSync } from 'node:sqlite';
 import crypto from 'node:crypto';
 import { AuditEvent, TenantSecurityMetrics } from '../../../shared/types.js';
+import { IAuditRepository } from '../../../shared/repositories.js';
 import { calculateAuditHash } from '../utils/crypto.js';
 
 const GENESIS_HASH = '0000000000000000000000000000000000000000000000000000000000000000';
 
-export class AuditRepository {
+export class AuditRepository implements IAuditRepository {
   constructor(private db: DatabaseSync) {}
 
   listAuditEvents(limit = 100): AuditEvent[] {
