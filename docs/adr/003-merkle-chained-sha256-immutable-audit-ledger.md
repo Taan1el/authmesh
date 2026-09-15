@@ -22,4 +22,5 @@ Compliance regulations in European FinTech and enterprise security (SOC 2, ISO 2
 
 ## Consequences
 - **Positive**: Complete tamper evidence; unauthorized database tampering breaks the mathematical hash chain.
-- **Positive**: High performance: SHA-256 hash generation on modern CPUs takes $< 2\ \mu\text{s}$ per record.
+- **Positive**: High performance: SHA-256 hash generation takes a few microseconds per record on modern CPUs, negligible next to the surrounding database write.
+- **Neutral**: The server and the in-browser GitHub Pages demo (see `shared/sha256.ts`) use a small dependency-free SHA-256 implementation instead of `node:crypto`, so the exact same code computes the chain in both places; there is no native OpenSSL binding available in a browser to share instead.
