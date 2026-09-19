@@ -11,6 +11,7 @@ import { TenantService } from '../../../shared/tenant.service.js';
 import { AuthController } from '../controllers/auth.controller.js';
 import { TenantController } from '../controllers/tenant.controller.js';
 import { createRbacMiddleware } from '../middleware/rbac.middleware.js';
+import { hashApiKey } from '../utils/crypto.js';
 
 export function createApiRouter(db: DatabaseSync): Router {
   const router = Router();
@@ -24,7 +25,7 @@ export function createApiRouter(db: DatabaseSync): Router {
   // Services
   const policyService = new PolicyService();
   const rateLimiter = new RateLimiterService();
-  const authService = new AuthService(apiKeyRepo, userRepo, roleRepo, auditRepo, policyService, rateLimiter);
+  const authService = new AuthService(apiKeyRepo, userRepo, roleRepo, auditRepo, policyService, rateLimiter, hashApiKey);
   const tenantService = new TenantService(userRepo, roleRepo, apiKeyRepo, auditRepo);
 
   // Middleware & Controllers

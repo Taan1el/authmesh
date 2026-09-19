@@ -27,6 +27,7 @@ import {
   DemoRoleRepository,
   DemoUserRepository,
 } from './demoRepositories.js';
+import { hashApiKey } from './demoCrypto.js';
 
 const db = new DemoDatabase();
 const userRepo = new DemoUserRepository(db);
@@ -35,7 +36,7 @@ const apiKeyRepo = new DemoApiKeyRepository(db);
 const auditRepo = new DemoAuditRepository(db);
 const policyService = new PolicyService();
 const rateLimiter = new RateLimiterService();
-const authService = new AuthService(apiKeyRepo, userRepo, roleRepo, auditRepo, policyService, rateLimiter);
+const authService = new AuthService(apiKeyRepo, userRepo, roleRepo, auditRepo, policyService, rateLimiter, hashApiKey);
 const tenantService = new TenantService(userRepo, roleRepo, apiKeyRepo, auditRepo);
 
 // Wipes local edits and starts a fresh demo scenario (also clears rate

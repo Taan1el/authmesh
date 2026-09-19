@@ -1,5 +1,5 @@
 import { ApiKey, AuditEvent, Role, User } from '../../../shared/types.js';
-import { calculateAuditHash, GENESIS_HASH, hashApiKey } from '../../../shared/crypto.js';
+import { calculateAuditHash, GENESIS_HASH, hashApiKey } from './demoCrypto.js';
 
 // An API key record as stored internally: the public ApiKey shape plus the
 // hash used to look it up by bearer token. Never returned to callers as-is;

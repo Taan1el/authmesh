@@ -1,10 +1,12 @@
-// Minimal, dependency-free SHA-256 (FIPS 180-4) implementation. It exists so
-// the exact same hashing code can run on the server (which has node:crypto)
-// and in the GitHub Pages demo (which does not). The Web Crypto API
-// (crypto.subtle.digest) is available in both environments but is async-only
-// everywhere, which would force API key hashing and audit chaining through
-// the whole request pipeline to become async; this stays synchronous like
-// the rest of the RBAC evaluation path.
+// Minimal, dependency-free SHA-256 (FIPS 180-4) implementation used only by
+// the GitHub Pages demo, which runs entirely in the browser and has no
+// node:crypto (see client/src/services/demoCrypto.ts). The production
+// server does not use this file: it binds shared/crypto.ts's
+// createCrypto() to node:crypto's createHash('sha256') instead (see
+// server/src/utils/crypto.ts). The Web Crypto API (crypto.subtle.digest) is
+// available in the browser too but is async-only, which would force API key
+// hashing and audit chaining through the whole request pipeline to become
+// async; this stays synchronous like the rest of the RBAC evaluation path.
 //
 // This is a standard, publicly specified digest algorithm, not a bespoke
 // cryptographic design. It is used here the same way the rest of this

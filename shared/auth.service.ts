@@ -1,14 +1,15 @@
 import { IApiKeyRepository, IAuditRepository, IRoleRepository, IUserRepository } from './repositories.js';
 import { PolicyService } from './policy.service.js';
 import { RateLimiterService } from './rate-limiter.service.js';
-import { hashApiKey } from './crypto.js';
 import { AccessEvaluationResult, EvaluateAccessDto } from './types.js';
 
 // The core RBAC decision engine: given a token or a user id, decide whether
 // the requested permission is granted, recording an audit event either way.
-// It only depends on the repository interfaces above, so the server (SQLite
-// repositories) and the GitHub Pages demo (in-memory repositories) evaluate
-// access with this exact class instead of two copies that could drift.
+// It only depends on the repository interfaces above and an injected
+// hashApiKey function, so the server (SQLite repositories, node:crypto
+// hashing) and the GitHub Pages demo (in-memory repositories,
+// shared/sha256.ts hashing) evaluate access with this exact class instead
+// of two copies that could drift.
 export class AuthService {
   constructor(
     private apiKeyRepo: IApiKeyRepository,
@@ -16,7 +17,8 @@ export class AuthService {
     private roleRepo: IRoleRepository,
     private auditRepo: IAuditRepository,
     private policyService: PolicyService,
-    private rateLimiter: RateLimiterService
+    private rateLimiter: RateLimiterService,
+    private hashApiKey: (rawToken: string) => string
   ) {}
 
   evaluateAccess(
@@ -29,7 +31,7 @@ export class AuthService {
 
     // Case 1: Evaluate API Key Token
     if (dto.token) {
-      const keyHash = hashApiKey(dto.token);
+      const keyHash = this.hashApiKey(dto.token);
       const apiKey = this.apiKeyRepo.findApiKeyByHash(keyHash);
 
       if (!apiKey) {

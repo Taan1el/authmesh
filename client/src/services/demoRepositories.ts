@@ -9,7 +9,7 @@ import {
   User,
 } from '../../../shared/types.js';
 import { IApiKeyRepository, IAuditRepository, IRoleRepository, IUserRepository } from '../../../shared/repositories.js';
-import { calculateAuditHash, generateApiKey, GENESIS_HASH } from '../../../shared/crypto.js';
+import { calculateAuditHash, generateApiKey, GENESIS_HASH } from './demoCrypto.js';
 import { DemoDatabase } from './demoDatabase.js';
 import { DemoApiKeyRecord } from './demoSeed.js';
 
