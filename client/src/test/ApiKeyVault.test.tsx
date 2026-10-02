@@ -11,12 +11,12 @@ describe('ApiKeyVault', () => {
     render(<ApiKeyVault apiKeys={[]} onCreateKey={onCreateKey} onRevokeKey={onRevokeKey} />);
 
     const user = userEvent.setup();
-    await user.click(screen.getByRole('button', { name: /Generate New API Key/i }));
+    await user.click(screen.getByRole('button', { name: /Generate key/i }));
 
-    const dialog = await screen.findByRole('dialog', { name: /Generate Scoped API Key/i });
+    const dialog = await screen.findByRole('dialog', { name: /Generate scoped API key/i });
     expect(dialog).toBeInTheDocument();
 
-    const nameInput = screen.getByLabelText('Key Name / Service Description');
+    const nameInput = screen.getByLabelText('Key name');
     await waitFor(() => expect(nameInput).toHaveFocus());
 
     await user.keyboard('{Escape}');
@@ -43,9 +43,9 @@ describe('ApiKeyVault', () => {
     render(<ApiKeyVault apiKeys={[]} onCreateKey={onCreateKey} onRevokeKey={vi.fn()} />);
 
     const user = userEvent.setup();
-    await user.click(screen.getByRole('button', { name: /Generate New API Key/i }));
-    await user.type(screen.getByLabelText('Key Name / Service Description'), 'Reporting Service');
-    await user.click(screen.getByRole('button', { name: /Create & View Secret/i }));
+    await user.click(screen.getByRole('button', { name: /Generate key/i }));
+    await user.type(screen.getByLabelText('Key name'), 'Reporting Service');
+    await user.click(screen.getByRole('button', { name: /Create key/i }));
 
     await waitFor(() => {
       expect(onCreateKey).toHaveBeenCalledWith(

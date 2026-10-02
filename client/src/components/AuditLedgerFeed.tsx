@@ -1,19 +1,30 @@
 import React, { useState } from 'react';
+import { KeyRound, ShieldCheck, User as UserIcon } from 'lucide-react';
 import { AuditEvent } from '../../../shared/types';
+import { pluralize } from '../utils/pluralize.js';
 
 interface AuditLedgerFeedProps {
   events: AuditEvent[];
   onVerifyChain: () => void;
   isVerifying: boolean;
+  chainValid?: boolean;
+}
+
+function maskHash(hash: string): string {
+  return `${hash.slice(0, 12)}...${hash.slice(-6)}`;
 }
 
 export const AuditLedgerFeed: React.FC<AuditLedgerFeedProps> = ({
   events,
   onVerifyChain,
   isVerifying,
+  chainValid,
 }) => {
   const [filter, setFilter] = useState<'all' | 'granted' | 'denied'>('all');
   const [expandedId, setExpandedId] = useState<string | null>(null);
+
+  const grantedCount = events.filter((e) => e.status === 'granted').length;
+  const deniedCount = events.filter((e) => e.status === 'denied').length;
 
   const filtered = events.filter((e) => {
     if (filter === 'granted') return e.status === 'granted';
@@ -22,137 +33,123 @@ export const AuditLedgerFeed: React.FC<AuditLedgerFeedProps> = ({
   });
 
   return (
-    <div className="card">
-      <div className="card-header">
+    <section className="panel" aria-labelledby="audit-title">
+      <div className="panel-heading">
         <div>
-          <h3>Cryptographically Chained Audit Ledger</h3>
-          <p className="subtitle">
-            Immutable SHA-256 block ledger tracking all access decisions, token usage, and administrative actions
+          <h2 id="audit-title">Audit log</h2>
+          <p className="panel-description">
+            Every access decision, chained by hash so a changed entry breaks verification.
           </p>
-          <div className="tab-pills mt-2" role="group" aria-label="Filter audit events">
-            <button
-              className={`tab-btn ${filter === 'all' ? 'active' : ''}`}
-              aria-pressed={filter === 'all'}
-              onClick={() => setFilter('all')}
-            >
-              All Events ({events.length})
-            </button>
-            <button
-              className={`tab-btn ${filter === 'granted' ? 'active' : ''}`}
-              aria-pressed={filter === 'granted'}
-              onClick={() => setFilter('granted')}
-            >
-              Granted ({events.filter((e) => e.status === 'granted').length})
-            </button>
-            <button
-              className={`tab-btn ${filter === 'denied' ? 'active' : ''}`}
-              aria-pressed={filter === 'denied'}
-              onClick={() => setFilter('denied')}
-            >
-              Denied / Violations ({events.filter((e) => e.status === 'denied').length})
-            </button>
-          </div>
         </div>
-        <button className="btn btn-secondary btn-sm" onClick={onVerifyChain} disabled={isVerifying}>
-          {isVerifying ? 'Verifying Hashes...' : '🔒 Verify Chain Integrity'}
+        <div className="panel-heading-meta">
+          {chainValid !== undefined && (
+            <span className={chainValid ? 'status-pill active' : 'status-pill suspended'}>
+              <ShieldCheck size={14} aria-hidden="true" />
+              {chainValid ? 'Chain verified' : 'Chain broken'}
+            </span>
+          )}
+          <button className="btn btn-secondary" onClick={onVerifyChain} disabled={isVerifying}>
+            {isVerifying ? 'Verifying' : 'Verify chain'}
+          </button>
+        </div>
+      </div>
+
+      <div className="filter-tabs" role="group" aria-label="Filter audit events" style={{ marginBottom: '1rem' }}>
+        <button
+          type="button"
+          className={`filter-tab ${filter === 'all' ? 'active' : ''}`}
+          aria-pressed={filter === 'all'}
+          onClick={() => setFilter('all')}
+        >
+          All ({events.length})
+        </button>
+        <button
+          type="button"
+          className={`filter-tab ${filter === 'granted' ? 'active' : ''}`}
+          aria-pressed={filter === 'granted'}
+          onClick={() => setFilter('granted')}
+        >
+          Granted ({grantedCount})
+        </button>
+        <button
+          type="button"
+          className={`filter-tab ${filter === 'denied' ? 'active' : ''}`}
+          aria-pressed={filter === 'denied'}
+          onClick={() => setFilter('denied')}
+        >
+          Denied ({deniedCount})
         </button>
       </div>
 
-      <div className="table-responsive">
-        <table className="data-table">
-          <thead>
-            <tr>
-              <th scope="col">Timestamp</th>
-              <th scope="col">Actor</th>
-              <th scope="col">Action</th>
-              <th scope="col">Resource</th>
-              <th scope="col">Outcome</th>
-              <th scope="col">Block SHA-256 Hash</th>
-              <th scope="col">Details</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filtered.map((ev) => (
-              <React.Fragment key={ev.id}>
-                <tr className="table-row">
-                  <td className="text-muted text-xs font-mono">
-                    {new Date(ev.created_at).toLocaleTimeString()}
-                  </td>
-                  <td>
-                    <div className="actor-badge">
-                      <span className="actor-type">{ev.actor_type === 'api_key' ? '🔑' : '👤'}</span>
-                      <span className="font-semibold">{ev.actor_name}</span>
-                    </div>
-                  </td>
-                  <td className="font-mono text-xs">{ev.action}</td>
-                  <td>
-                    <span className="resource-pill">{ev.resource}</span>
-                  </td>
-                  <td>
-                    <span
-                      className={`status-pill ${
-                        ev.status === 'granted' ? 'pill-granted' : 'pill-denied'
-                      }`}
-                    >
+      {filtered.length === 0 ? (
+        <p className="muted">No audit events match this filter.</p>
+      ) : (
+        <ul className="dense-list">
+          {filtered.map((ev) => {
+            const expanded = expandedId === ev.id;
+            return (
+              <li key={ev.id} className="dense-row">
+                <div className="dense-row-main">
+                  <strong>
+                    {ev.actor_type === 'api_key' ? (
+                      <KeyRound size={14} aria-hidden="true" />
+                    ) : (
+                      <UserIcon size={14} aria-hidden="true" />
+                    )}
+                    {ev.actor_name}
+                    <span className={ev.status === 'granted' ? 'status-pill active' : 'status-pill denied'}>
                       {ev.status}
                     </span>
-                  </td>
-                  <td>
-                    <div className="hash-container">
-                      <span className="font-mono hash-text" title={`Full Hash: ${ev.hash}`}>
-                        {ev.hash.slice(0, 14)}...
-                      </span>
-                      <span className="hash-link" title={`Previous Hash: ${ev.prev_hash}`}>
-                        ⛓️
-                      </span>
-                    </div>
-                  </td>
-                  <td>
-                    <button
-                      className="btn-action btn-secondary"
-                      aria-expanded={expandedId === ev.id}
-                      onClick={() => setExpandedId(expandedId === ev.id ? null : ev.id)}
-                    >
-                      {expandedId === ev.id ? 'Hide' : 'Inspect'}
-                    </button>
-                  </td>
-                </tr>
-                {expandedId === ev.id && (
-                  <tr className="expanded-detail-row">
-                    <td colSpan={7}>
-                      <div className="audit-detail-pane">
-                        <div className="detail-meta">
-                          <div>
-                            <strong>IP Address:</strong> <code>{ev.ip_address}</code>
-                          </div>
-                          <div>
-                            <strong>User-Agent:</strong> <code>{ev.user_agent}</code>
-                          </div>
-                          <div>
-                            <strong>Previous Block Hash:</strong> <code>{ev.prev_hash}</code>
-                          </div>
-                          <div>
-                            <strong>Current Block Hash:</strong> <code>{ev.hash}</code>
-                          </div>
-                        </div>
-                        <pre className="detail-json">{JSON.stringify(JSON.parse(ev.details), null, 2)}</pre>
+                  </strong>
+                  <small>
+                    {ev.action} on {ev.resource} &middot; {new Date(ev.created_at).toLocaleTimeString()}
+                  </small>
+                </div>
+                <div className="dense-row-side">
+                  <span className="dense-row-value" title={ev.hash}>
+                    {maskHash(ev.hash)}
+                  </span>
+                  <button
+                    type="button"
+                    className="btn-action"
+                    aria-expanded={expanded}
+                    onClick={() => setExpandedId(expanded ? null : ev.id)}
+                  >
+                    {expanded ? 'Hide' : 'Details'}
+                  </button>
+                </div>
+                {expanded && (
+                  <div className="dense-row-detail">
+                    <dl>
+                      <div>
+                        <dt>IP address</dt>
+                        <dd>{ev.ip_address}</dd>
                       </div>
-                    </td>
-                  </tr>
+                      <div>
+                        <dt>User agent</dt>
+                        <dd>{ev.user_agent}</dd>
+                      </div>
+                      <div>
+                        <dt>Previous hash</dt>
+                        <dd>{ev.prev_hash}</dd>
+                      </div>
+                      <div>
+                        <dt>Block hash</dt>
+                        <dd>{ev.hash}</dd>
+                      </div>
+                    </dl>
+                    <pre>{JSON.stringify(JSON.parse(ev.details), null, 2)}</pre>
+                  </div>
                 )}
-              </React.Fragment>
-            ))}
+              </li>
+            );
+          })}
+        </ul>
+      )}
 
-            {filtered.length === 0 && (
-              <tr>
-                <td colSpan={7} className="text-center py-6 text-muted">
-                  No audit events found for this filter.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
-    </div>
+      <p className="muted" style={{ marginTop: '0.75rem' }}>
+        Showing {filtered.length} {pluralize(filtered.length, 'entry', 'entries')}.
+      </p>
+    </section>
   );
 };

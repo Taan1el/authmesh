@@ -33,12 +33,12 @@ describe('SecuritySandbox', () => {
     vi.restoreAllMocks();
   });
 
-  // Regression test for a real bug: the "Simulated User" dropdown showed
+  // Regression test for a real bug: the "Simulated user" dropdown showed
   // Laura Tamm selected from the first render, but the component's state
   // stayed empty (useState's default only evaluates once, and `users`
   // normally arrives after the initial render from App's data load), so
-  // the very first "Dispatch Request" click sent an empty user_id.
-  it('sends the first user id on the first Dispatch Request click with no dropdown interaction', async () => {
+  // the very first "Send request" click sent an empty user_id.
+  it('sends the first user id on the first Send request click with no dropdown interaction', async () => {
     const simulateSpy = vi.spyOn(api, 'simulateProtectedRequest').mockResolvedValue({
       status: 200,
       headers: { 'x-ratelimit-limit': '-', 'x-ratelimit-remaining': '-', 'x-ratelimit-reset': '-' },
@@ -48,7 +48,7 @@ describe('SecuritySandbox', () => {
     render(<SecuritySandbox users={users} apiKeys={[]} onAuditUpdated={() => {}} />);
 
     const user = userEvent.setup();
-    await user.click(screen.getByRole('button', { name: /Dispatch Request/i }));
+    await user.click(screen.getByRole('button', { name: /Send request/i }));
 
     await waitFor(() => {
       expect(simulateSpy).toHaveBeenCalledWith('billing', 'GET', 'user', 'u-1');
@@ -66,8 +66,8 @@ describe('SecuritySandbox', () => {
     render(<SecuritySandbox users={users} apiKeys={[]} onAuditUpdated={() => {}} />);
 
     const user = userEvent.setup();
-    await user.selectOptions(screen.getByLabelText('Simulated User'), 'u-2');
-    await user.click(screen.getByRole('button', { name: /Dispatch Request/i }));
+    await user.selectOptions(screen.getByLabelText('Simulated user'), 'u-2');
+    await user.click(screen.getByRole('button', { name: /Send request/i }));
 
     await waitFor(() => {
       expect(simulateSpy).toHaveBeenCalledWith('billing', 'GET', 'user', 'u-2');

@@ -120,81 +120,81 @@ describe('AuthMesh Security Gateway Client Dashboard', () => {
     // load on mount; wait for it to settle so that state update is not left
     // dangling outside of act() after this test's assertions return.
     await waitFor(() => {
-      expect(screen.getByText('Security Posture Score')).toBeInTheDocument();
+      expect(screen.getByText('Security score')).toBeInTheDocument();
     });
   });
 
-  it('renders security posture score and audit chain status KPI cards', async () => {
+  it('renders the stats strip with the security score and member counts', async () => {
     render(<App />);
 
     await waitFor(() => {
-      expect(screen.getByText('Security Posture Score')).toBeInTheDocument();
+      expect(screen.getByText('Security score')).toBeInTheDocument();
       expect(screen.getByText('95')).toBeInTheDocument();
-      expect(screen.getByText(/Grade A\+/i)).toBeInTheDocument();
-      expect(screen.getByText('✓ Verified Hash Chain')).toBeInTheDocument();
+      expect(screen.getByText('Members')).toBeInTheDocument();
+      expect(screen.getByText('100%')).toBeInTheDocument();
     });
   });
 
-  it('renders interactive security sandbox tab by default', async () => {
+  it('renders the security sandbox tab by default', async () => {
     render(<App />);
 
     await waitFor(() => {
-      expect(screen.getByText(/Interactive RBAC Security Sandbox/i)).toBeInTheDocument();
-      expect(screen.getByText('🚀 Dispatch Request')).toBeInTheDocument();
-      expect(screen.getByText('⚡ Test Rate Limiting (Burst 4x)')).toBeInTheDocument();
+      expect(screen.getByText(/Security sandbox/i)).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /Send request/i })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /Send burst of 4/i })).toBeInTheDocument();
     });
   });
 
-  it('switches to RBAC Policy Matrix tab and renders permissions', async () => {
+  it('switches to the Permissions tab and renders the role matrix', async () => {
     render(<App />);
 
-    const matrixTab = await screen.findByText(/🛡️ RBAC Policy Matrix/i);
+    const matrixTab = await screen.findByRole('tab', { name: /Permissions/i });
     fireEvent.click(matrixTab);
 
     await waitFor(() => {
-      expect(screen.getByText('Enterprise Role & Scope Access Matrix')).toBeInTheDocument();
+      expect(screen.getByText('Role permissions')).toBeInTheDocument();
       expect(screen.getByText('Organization Owner')).toBeInTheDocument();
       expect(screen.getByText('Software Engineer')).toBeInTheDocument();
     });
   });
 
-  it('switches to API Key Vault tab and displays tokens', async () => {
+  it('switches to the API keys tab and displays tokens', async () => {
     render(<App />);
 
-    const keysTab = await screen.findByText(/🔑 API Key Vault/i);
+    const keysTab = await screen.findByRole('tab', { name: /API keys/i });
     fireEvent.click(keysTab);
 
     await waitFor(() => {
       expect(screen.getByText('CI/CD Deployment Token')).toBeInTheDocument();
       expect(screen.getByText('am_live_ci_c...mock')).toBeInTheDocument();
-      expect(screen.getByText('+ Generate New API Key')).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /Generate key/i })).toBeInTheDocument();
     });
   });
 
-  it('switches to Tenant Identities tab and displays member credentials', async () => {
+  it('switches to the Members tab and displays member credentials', async () => {
     render(<App />);
 
-    const usersTab = await screen.findByText(/👥 Tenant Identities/i);
+    const usersTab = await screen.findByRole('tab', { name: /Members/i });
     fireEvent.click(usersTab);
 
     await waitFor(() => {
       expect(screen.getByText('Laura Tamm')).toBeInTheDocument();
       expect(screen.getByText('laura.tamm@nordicfintech.ee')).toBeInTheDocument();
       expect(screen.getByText('Sander Sepp')).toBeInTheDocument();
-      expect(screen.getAllByText('🔒 Enforced').length).toBeGreaterThan(0);
+      expect(screen.getAllByText('Enforced').length).toBeGreaterThan(0);
     });
   });
 
-  it('switches to Immutable Audit Trail tab and displays block hash', async () => {
+  it('switches to the Audit log tab and displays a masked block hash', async () => {
     render(<App />);
 
-    const auditTab = await screen.findByText(/⛓️ Immutable Audit Trail/i);
+    const auditTab = await screen.findByRole('tab', { name: /Audit log/i });
     fireEvent.click(auditTab);
 
     await waitFor(() => {
-      expect(screen.getAllByText('Cryptographically Chained Audit Ledger').length).toBeGreaterThan(0);
-      expect(screen.getByText('tenant.initialized')).toBeInTheDocument();
-      expect(screen.getByText('a1b2c3d4e5f678...')).toBeInTheDocument();
+      expect(screen.getAllByText('Audit log').length).toBeGreaterThan(0);
+      expect(screen.getByText(/tenant.initialized/)).toBeInTheDocument();
+      expect(screen.getByText(/a1b2c3d4e5f6/)).toBeInTheDocument();
     });
   });
 });

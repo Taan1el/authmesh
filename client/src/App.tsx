@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { FlaskConical, KeyRound, Link2, Shield, Users } from 'lucide-react';
 import { api } from './services/index';
 import {
   User,
@@ -10,13 +11,14 @@ import {
   CreateUserDto,
   CreateApiKeyDto,
 } from '../../shared/types';
-import { SecurityMetrics } from './components/SecurityMetrics';
+import { StatsBar } from './components/StatsBar';
 import { PermissionMatrix } from './components/PermissionMatrix';
 import { ApiKeyVault } from './components/ApiKeyVault';
 import { UserDirectory } from './components/UserDirectory';
 import { AuditLedgerFeed } from './components/AuditLedgerFeed';
 import { SecuritySandbox } from './components/SecuritySandbox';
 import { DemoBanner } from './components/DemoBanner';
+import { Header } from './components/Header';
 import './App.css';
 
 export const App: React.FC = () => {
@@ -34,6 +36,7 @@ export const App: React.FC = () => {
   });
 
   const [activeTab, setActiveTab] = useState<'sandbox' | 'matrix' | 'keys' | 'users' | 'audit'>('sandbox');
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
   const [notification, setNotification] = useState<string | null>(null);
 
@@ -43,6 +46,7 @@ export const App: React.FC = () => {
   };
 
   const loadData = useCallback(async () => {
+    setIsRefreshing(true);
     try {
       const [uList, rList, kList, aList, mData] = await Promise.all([
         api.getUsers(),
@@ -59,6 +63,8 @@ export const App: React.FC = () => {
       setMetrics(mData);
     } catch (err: any) {
       console.error('Failed to load AuthMesh state:', err);
+    } finally {
+      setIsRefreshing(false);
     }
   }, []);
 
@@ -71,9 +77,9 @@ export const App: React.FC = () => {
     try {
       const res = await api.verifyAuditChain();
       if (res.valid) {
-        showToast(`Audit Ledger verified! All ${res.totalBlocks} SHA-256 blocks valid.`);
+        showToast(`Audit log verified, all ${res.totalBlocks} blocks valid.`);
       } else {
-        showToast(`Warning: Blockchain verification failed at block ${res.brokenBlockId}`);
+        showToast(`Chain verification failed at block ${res.brokenBlockId}.`);
       }
       await loadData();
     } finally {
@@ -84,7 +90,7 @@ export const App: React.FC = () => {
   const handleUpdateRole = async (id: string, role: RoleName) => {
     try {
       await api.updateUserRole(id, role);
-      showToast(`User role updated to ${role}`);
+      showToast(`Role updated to ${role}.`);
       await loadData();
     } catch (err: any) {
       alert(`Error updating role: ${err.message}`);
@@ -95,7 +101,7 @@ export const App: React.FC = () => {
     try {
       const nextStatus = currentStatus === 'active' ? 'suspended' : 'active';
       await api.updateUserStatus(id, nextStatus);
-      showToast(`User account status updated to ${nextStatus}`);
+      showToast(`Account status updated to ${nextStatus}.`);
       await loadData();
     } catch (err: any) {
       alert(`Error updating status: ${err.message}`);
@@ -104,21 +110,21 @@ export const App: React.FC = () => {
 
   const handleCreateUser = async (dto: CreateUserDto) => {
     await api.createUser(dto);
-    showToast(`Invited ${dto.name} as ${dto.role}`);
+    showToast(`Invited ${dto.name} as ${dto.role}.`);
     await loadData();
   };
 
   const handleCreateKey = async (dto: CreateApiKeyDto) => {
     const result = await api.createKey(dto);
-    showToast(`Generated API key '${result.name}'`);
+    showToast(`Generated API key '${result.name}'.`);
     await loadData();
     return result;
   };
 
   const handleRevokeKey = async (id: string) => {
-    if (!confirm('Are you sure you want to permanently revoke this API key?')) return;
+    if (!confirm('Revoke this API key? It stops working immediately.')) return;
     await api.revokeKey(id);
-    showToast('API key revoked immediately across all gateway nodes');
+    showToast('API key revoked.');
     await loadData();
   };
 
@@ -126,41 +132,13 @@ export const App: React.FC = () => {
     <div className="app-container">
       <DemoBanner onReset={loadData} />
 
-      {/* Header */}
-      <header className="app-header">
-        <div className="header-brand">
-          <div className="brand-logo">AM</div>
-          <div>
-            <h1>AuthMesh</h1>
-            <p className="header-subtitle">
-              Enterprise Multi-Tenant RBAC Security Gateway & Cryptographically Verified Audit Ledger
-            </p>
-          </div>
-        </div>
+      <Header onRefresh={loadData} isRefreshing={isRefreshing} />
 
-        <div className="header-actions">
-          <div className="tenant-badge">
-            <span className="tenant-icon">🏢</span>
-            <span>Nordic FinTech Labs (Estonia)</span>
-          </div>
-          <button className="btn btn-secondary btn-sm" onClick={loadData}>
-            ↻ Sync State
-          </button>
-        </div>
-      </header>
+      {notification && <div className="toast" role="status">{notification}</div>}
 
-      {/* Notification Toast */}
-      {notification && <div className="toast-notification">{notification}</div>}
+      <main className="app-main">
+        <StatsBar metrics={metrics} />
 
-      <main className="dashboard-content">
-        {/* Security Posture KPI Cards */}
-        <SecurityMetrics
-          metrics={metrics}
-          onVerifyChain={handleVerifyChain}
-          isVerifying={isVerifying}
-        />
-
-        {/* Navigation Tabs */}
         <div className="main-nav-tabs" role="tablist" aria-label="AuthMesh views">
           <button
             id="tab-sandbox"
@@ -170,7 +148,8 @@ export const App: React.FC = () => {
             className={`nav-tab ${activeTab === 'sandbox' ? 'active' : ''}`}
             onClick={() => setActiveTab('sandbox')}
           >
-            🧪 Interactive Security Sandbox
+            <FlaskConical size={16} aria-hidden="true" />
+            Sandbox
           </button>
           <button
             id="tab-matrix"
@@ -180,7 +159,8 @@ export const App: React.FC = () => {
             className={`nav-tab ${activeTab === 'matrix' ? 'active' : ''}`}
             onClick={() => setActiveTab('matrix')}
           >
-            🛡️ RBAC Policy Matrix
+            <Shield size={16} aria-hidden="true" />
+            Permissions
           </button>
           <button
             id="tab-keys"
@@ -190,7 +170,8 @@ export const App: React.FC = () => {
             className={`nav-tab ${activeTab === 'keys' ? 'active' : ''}`}
             onClick={() => setActiveTab('keys')}
           >
-            🔑 API Key Vault
+            <KeyRound size={16} aria-hidden="true" />
+            API keys
           </button>
           <button
             id="tab-users"
@@ -200,7 +181,8 @@ export const App: React.FC = () => {
             className={`nav-tab ${activeTab === 'users' ? 'active' : ''}`}
             onClick={() => setActiveTab('users')}
           >
-            👥 Tenant Identities ({users.length})
+            <Users size={16} aria-hidden="true" />
+            Members ({users.length})
           </button>
           <button
             id="tab-audit"
@@ -210,11 +192,11 @@ export const App: React.FC = () => {
             className={`nav-tab ${activeTab === 'audit' ? 'active' : ''}`}
             onClick={() => setActiveTab('audit')}
           >
-            ⛓️ Immutable Audit Trail ({auditEvents.length})
+            <Link2 size={16} aria-hidden="true" />
+            Audit log ({auditEvents.length})
           </button>
         </div>
 
-        {/* Tab Views */}
         {activeTab === 'sandbox' && (
           <div className="tab-view-container" id="panel-sandbox" role="tabpanel" aria-labelledby="tab-sandbox">
             <SecuritySandbox
@@ -226,6 +208,7 @@ export const App: React.FC = () => {
               events={auditEvents.slice(0, 10)}
               onVerifyChain={handleVerifyChain}
               isVerifying={isVerifying}
+              chainValid={metrics.audit_chain_valid}
             />
           </div>
         )}
@@ -263,10 +246,18 @@ export const App: React.FC = () => {
               events={auditEvents}
               onVerifyChain={handleVerifyChain}
               isVerifying={isVerifying}
+              chainValid={metrics.audit_chain_valid}
             />
           </div>
         )}
       </main>
+
+      <footer className="app-footer">
+        <div>AuthMesh &bull; MIT License</div>
+        <a href="https://github.com/Taan1el/authmesh" target="_blank" rel="noreferrer">
+          Source on GitHub
+        </a>
+      </footer>
     </div>
   );
 };

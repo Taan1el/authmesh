@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { AlertTriangle, Plus, X } from 'lucide-react';
 import { ApiKey, CreateApiKeyDto } from '../../../shared/types';
 
 interface ApiKeyVaultProps {
@@ -95,37 +96,43 @@ export const ApiKeyVault: React.FC<ApiKeyVaultProps> = ({
   };
 
   return (
-    <div className="card">
-      <div className="card-header">
+    <section className="panel" aria-labelledby="keys-title">
+      <div className="panel-heading">
         <div>
-          <h3>Cryptographic API Key Vault</h3>
-          <p className="subtitle">Hashed tokens with fine-grained capability scopes and token-bucket limits</p>
+          <h2 id="keys-title">API keys</h2>
+          <p className="panel-description">Hashed tokens with scoped permissions and a per-key rate limit.</p>
         </div>
         <button className="btn btn-primary" onClick={() => setIsModalOpen(true)}>
-          + Generate New API Key
+          <Plus size={16} aria-hidden="true" />
+          Generate key
         </button>
       </div>
 
-      <div className="table-responsive">
+      <div className="table-wrapper">
         <table className="data-table">
           <thead>
             <tr>
               <th scope="col">Name</th>
-              <th scope="col">Token Prefix</th>
-              <th scope="col">Granted Scopes</th>
-              <th scope="col">Quota (RPM)</th>
-              <th scope="col">Last Used</th>
+              <th scope="col">Prefix</th>
+              <th scope="col">Scopes</th>
+              <th scope="col">Rate limit</th>
+              <th scope="col">Last used</th>
               <th scope="col">Status</th>
               <th scope="col">Action</th>
             </tr>
           </thead>
           <tbody>
+            {apiKeys.length === 0 && (
+              <tr className="empty-row">
+                <td colSpan={7}>No API keys yet. Generate one to authenticate a service.</td>
+              </tr>
+            )}
             {apiKeys.map((k) => (
               <tr key={k.id}>
-                <td className="font-semibold">{k.name}</td>
                 <td>
-                  <span className="font-mono key-prefix-badge">{k.key_prefix}</span>
+                  <strong>{k.name}</strong>
                 </td>
+                <td className="cell-mono">{k.key_prefix}</td>
                 <td>
                   <div className="scopes-wrap">
                     {k.scopes.map((s) => (
@@ -135,23 +142,23 @@ export const ApiKeyVault: React.FC<ApiKeyVaultProps> = ({
                     ))}
                   </div>
                 </td>
-                <td className="font-mono">{k.rate_limit_rpm} req/m</td>
-                <td className="text-muted text-xs">
+                <td className="cell-mono">{k.rate_limit_rpm} req/min</td>
+                <td className="muted">
                   {k.last_used_at ? new Date(k.last_used_at).toLocaleTimeString() : 'Never'}
                 </td>
                 <td>
                   {k.revoked_at ? (
-                    <span className="status-pill pill-revoked">Revoked</span>
+                    <span className="status-pill revoked">Revoked</span>
                   ) : (
-                    <span className="status-pill pill-active">Active</span>
+                    <span className="status-pill active">Active</span>
                   )}
                 </td>
                 <td>
                   {!k.revoked_at && (
                     <button
-                      className="btn-action btn-danger"
+                      className="btn-action danger"
                       onClick={() => onRevokeKey(k.id)}
-                      title="Instantly invalidate token across all gateways"
+                      title="Invalidate this token immediately"
                     >
                       Revoke
                     </button>
@@ -163,7 +170,6 @@ export const ApiKeyVault: React.FC<ApiKeyVaultProps> = ({
         </table>
       </div>
 
-      {/* Modal for Key Creation */}
       {isModalOpen && (
         <div className="modal-overlay" onClick={closeModal}>
           <div
@@ -174,44 +180,41 @@ export const ApiKeyVault: React.FC<ApiKeyVaultProps> = ({
             onClick={(e) => e.stopPropagation()}
           >
             <div className="modal-header">
-              <h3 id="apikey-modal-title">{revealedToken ? 'Save Your API Key Token' : 'Generate Scoped API Key'}</h3>
-              <button className="btn-close" onClick={closeModal} aria-label="Close">
-                ×
+              <h3 id="apikey-modal-title">{revealedToken ? 'Save this key' : 'Generate scoped API key'}</h3>
+              <button className="modal-close" onClick={closeModal} aria-label="Close">
+                <X size={18} aria-hidden="true" />
               </button>
             </div>
 
             {revealedToken ? (
               <div className="modal-body">
-                <div className="security-alert-box">
-                  <p className="font-bold text-amber">⚠️ Important Security Notice</p>
-                  <p className="text-xs text-muted">
-                    This token is only displayed once. It is stored as a SHA-256 one-way cryptographic hash
-                    in the database and cannot be recovered if lost.
-                  </p>
-                </div>
+                <p className="notice warn">
+                  <AlertTriangle size={16} aria-hidden="true" />
+                  This token is shown once. It is stored as a one-way hash and cannot be recovered if lost.
+                </p>
 
-                <div className="token-reveal-container">
-                  <span className="font-mono text-xs token-string">{revealedToken}</span>
-                  <button className="btn btn-primary btn-sm" onClick={copyToClipboard}>
-                    {copied ? 'Copied! ✓' : 'Copy Secret'}
+                <div className="token-reveal">
+                  <span className="token-string">{revealedToken}</span>
+                  <button className="btn btn-secondary" onClick={copyToClipboard}>
+                    {copied ? 'Copied' : 'Copy token'}
                   </button>
                 </div>
 
                 <div className="modal-footer">
-                  <button className="btn btn-secondary" onClick={closeModal}>
-                    I have safely stored this secret
+                  <button className="btn btn-primary" onClick={closeModal}>
+                    I have saved this token
                   </button>
                 </div>
               </div>
             ) : (
               <form onSubmit={handleCreate} className="modal-body">
                 <div className="form-group">
-                  <label htmlFor="apikey-name-input">Key Name / Service Description</label>
+                  <label htmlFor="apikey-name-input">Key name</label>
                   <input
                     id="apikey-name-input"
                     ref={nameInputRef}
                     type="text"
-                    placeholder="e.g. Stripe Webhook Ingestion Service"
+                    placeholder="e.g. Stripe webhook ingestion"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     className="form-control"
@@ -220,10 +223,10 @@ export const ApiKeyVault: React.FC<ApiKeyVaultProps> = ({
                 </div>
 
                 <fieldset className="form-group">
-                  <legend>Assign Permission Scopes</legend>
+                  <legend>Scopes</legend>
                   <div className="scope-selection-grid">
                     {AVAILABLE_SCOPES.map((scope) => (
-                      <label key={scope} className="scope-checkbox-label">
+                      <label key={scope} className="checkbox-field">
                         <input
                           type="checkbox"
                           checked={selectedScopes.includes(scope)}
@@ -237,7 +240,7 @@ export const ApiKeyVault: React.FC<ApiKeyVaultProps> = ({
 
                 <div className="form-row">
                   <div className="form-group">
-                    <label htmlFor="apikey-rpm-input">Rate Limit Quota (RPM)</label>
+                    <label htmlFor="apikey-rpm-input">Rate limit (req/min)</label>
                     <input
                       id="apikey-rpm-input"
                       type="number"
@@ -250,17 +253,17 @@ export const ApiKeyVault: React.FC<ApiKeyVaultProps> = ({
                   </div>
 
                   <div className="form-group">
-                    <label htmlFor="apikey-expiry-select">Expiration Period</label>
+                    <label htmlFor="apikey-expiry-select">Expires</label>
                     <select
                       id="apikey-expiry-select"
                       value={expiryDays}
                       onChange={(e) => setExpiryDays(e.target.value)}
                       className="form-control"
                     >
-                      <option value="30">30 Days</option>
-                      <option value="90">90 Days</option>
-                      <option value="365">1 Year</option>
-                      <option value="">Never Expires</option>
+                      <option value="30">30 days</option>
+                      <option value="90">90 days</option>
+                      <option value="365">1 year</option>
+                      <option value="">Never</option>
                     </select>
                   </div>
                 </div>
@@ -270,7 +273,7 @@ export const ApiKeyVault: React.FC<ApiKeyVaultProps> = ({
                     Cancel
                   </button>
                   <button type="submit" className="btn btn-primary" disabled={isSubmitting}>
-                    {isSubmitting ? 'Hashing & Generating...' : 'Create & View Secret'}
+                    {isSubmitting ? 'Creating' : 'Create key'}
                   </button>
                 </div>
               </form>
@@ -278,6 +281,6 @@ export const ApiKeyVault: React.FC<ApiKeyVaultProps> = ({
           </div>
         </div>
       )}
-    </div>
+    </section>
   );
 };

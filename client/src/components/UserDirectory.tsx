@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { Lock, Plus, ShieldAlert, X } from 'lucide-react';
 import { CreateUserDto, RoleName, User } from '../../../shared/types';
 
 interface UserDirectoryProps {
@@ -10,10 +11,10 @@ interface UserDirectoryProps {
 
 const ROLES: { name: RoleName; label: string }[] = [
   { name: 'owner', label: 'Owner' },
-  { name: 'admin', label: 'Security Admin' },
+  { name: 'admin', label: 'Admin' },
   { name: 'developer', label: 'Developer' },
-  { name: 'security_auditor', label: 'Compliance Auditor' },
-  { name: 'billing_manager', label: 'Billing Manager' },
+  { name: 'security_auditor', label: 'Auditor' },
+  { name: 'billing_manager', label: 'Billing manager' },
   { name: 'viewer', label: 'Viewer' },
 ];
 
@@ -63,42 +64,40 @@ export const UserDirectory: React.FC<UserDirectoryProps> = ({
   };
 
   return (
-    <div className="card">
-      <div className="card-header">
+    <section className="panel" aria-labelledby="users-title">
+      <div className="panel-heading">
         <div>
-          <h3>Organization Member Identities</h3>
-          <p className="subtitle">Manage roles, enforce multi-factor authentication, and govern access</p>
+          <h2 id="users-title">Members</h2>
+          <p className="panel-description">Roles, MFA enrollment and account status for this organization.</p>
         </div>
         <button className="btn btn-primary" onClick={() => setIsModalOpen(true)}>
-          + Invite Member
+          <Plus size={16} aria-hidden="true" />
+          Invite member
         </button>
       </div>
 
-      <div className="table-responsive">
+      <div className="table-wrapper">
         <table className="data-table">
           <thead>
             <tr>
-              <th scope="col">Member</th>
+              <th scope="col">Name</th>
               <th scope="col">Email</th>
-              <th scope="col">Assigned RBAC Role</th>
-              <th scope="col">MFA Security</th>
+              <th scope="col">Role</th>
+              <th scope="col">MFA</th>
               <th scope="col">Status</th>
-              <th scope="col">Actions</th>
+              <th scope="col">Action</th>
             </tr>
           </thead>
           <tbody>
             {users.map((u) => (
               <tr key={u.id}>
                 <td>
-                  <div className="user-name-cell">
-                    <span className="user-avatar">{u.name.slice(0, 2).toUpperCase()}</span>
-                    <span className="font-semibold">{u.name}</span>
-                  </div>
+                  <strong>{u.name}</strong>
                 </td>
-                <td className="font-mono text-sm text-secondary">{u.email}</td>
+                <td className="cell-mono">{u.email}</td>
                 <td>
                   <select
-                    className="select-mini"
+                    className="form-control"
                     aria-label={`Change role for ${u.name}`}
                     value={u.role}
                     onChange={(e) => onUpdateRole(u.id, e.target.value as RoleName)}
@@ -112,23 +111,23 @@ export const UserDirectory: React.FC<UserDirectoryProps> = ({
                 </td>
                 <td>
                   {u.mfa_enabled ? (
-                    <span className="mfa-badge mfa-enabled">🔒 Enforced</span>
+                    <span className="status-pill active">
+                      <Lock size={14} aria-hidden="true" /> Enforced
+                    </span>
                   ) : (
-                    <span className="mfa-badge mfa-disabled">⚠️ Missing</span>
+                    <span className="status-pill suspended">
+                      <ShieldAlert size={14} aria-hidden="true" /> Missing
+                    </span>
                   )}
                 </td>
                 <td>
-                  <span
-                    className={`status-pill ${
-                      u.status === 'active' ? 'pill-active' : 'pill-suspended'
-                    }`}
-                  >
+                  <span className={`status-pill ${u.status === 'active' ? 'active' : 'suspended'}`}>
                     {u.status}
                   </span>
                 </td>
                 <td>
                   <button
-                    className={`btn-action btn-${u.status === 'active' ? 'warning' : 'success'}`}
+                    className="btn-action"
                     onClick={() => onToggleStatus(u.id, u.status)}
                   >
                     {u.status === 'active' ? 'Suspend' : 'Reactivate'}
@@ -140,7 +139,6 @@ export const UserDirectory: React.FC<UserDirectoryProps> = ({
         </table>
       </div>
 
-      {/* Invite Member Modal */}
       {isModalOpen && (
         <div className="modal-overlay" onClick={closeModal}>
           <div
@@ -151,15 +149,15 @@ export const UserDirectory: React.FC<UserDirectoryProps> = ({
             onClick={(e) => e.stopPropagation()}
           >
             <div className="modal-header">
-              <h3 id="invite-modal-title">Invite Organization Member</h3>
-              <button className="btn-close" onClick={closeModal} aria-label="Close">
-                ×
+              <h3 id="invite-modal-title">Invite member</h3>
+              <button className="modal-close" onClick={closeModal} aria-label="Close">
+                <X size={18} aria-hidden="true" />
               </button>
             </div>
 
             <form onSubmit={handleCreate} className="modal-body">
               <div className="form-group">
-                <label htmlFor="invite-name-input">Full Name</label>
+                <label htmlFor="invite-name-input">Full name</label>
                 <input
                   id="invite-name-input"
                   ref={nameInputRef}
@@ -173,7 +171,7 @@ export const UserDirectory: React.FC<UserDirectoryProps> = ({
               </div>
 
               <div className="form-group">
-                <label htmlFor="invite-email-input">Corporate Email</label>
+                <label htmlFor="invite-email-input">Email</label>
                 <input
                   id="invite-email-input"
                   type="email"
@@ -186,7 +184,7 @@ export const UserDirectory: React.FC<UserDirectoryProps> = ({
               </div>
 
               <div className="form-group">
-                <label htmlFor="invite-role-select">Initial Role Assignment</label>
+                <label htmlFor="invite-role-select">Role</label>
                 <select
                   id="invite-role-select"
                   value={role}
@@ -202,13 +200,13 @@ export const UserDirectory: React.FC<UserDirectoryProps> = ({
               </div>
 
               <div className="form-group">
-                <label className="checkbox-inline">
+                <label className="checkbox-field">
                   <input
                     type="checkbox"
                     checked={mfaEnabled}
                     onChange={(e) => setMfaEnabled(e.target.checked)}
                   />
-                  <span>Enforce Multi-Factor Authentication (MFA) on first login</span>
+                  <span>Require MFA on first login</span>
                 </label>
               </div>
 
@@ -217,13 +215,13 @@ export const UserDirectory: React.FC<UserDirectoryProps> = ({
                   Cancel
                 </button>
                 <button type="submit" className="btn btn-primary" disabled={isSubmitting}>
-                  {isSubmitting ? 'Inviting...' : 'Send Invitation'}
+                  {isSubmitting ? 'Inviting' : 'Send invitation'}
                 </button>
               </div>
             </form>
           </div>
         </div>
       )}
-    </div>
+    </section>
   );
 };
