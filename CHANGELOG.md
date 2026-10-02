@@ -4,6 +4,12 @@ All notable changes to this project are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased]
+
+### Changed
+- New visual identity: a dark petrol sidebar lists Sandbox, Permissions, API keys, Members and Audit log with counts, and the security score sits on one line at the bottom of it. The main column shows one panel at a time on a pale slate background, with compact tables, dot-and-text status labels and a flat meter for MFA adoption.
+- Typography is now IBM Plex Sans with IBM Plex Mono for keys, paths and hashes. The stats strip and top header are gone; the sidebar replaces them. Behavior, features and API calls are unchanged.
+
 ## [1.0.0] - 2026-10-02
 
 ### Added

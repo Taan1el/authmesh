@@ -16,7 +16,7 @@ Teams that need to hand a service, script, or contractor a scoped, revocable cre
 
 ## Screenshot
 
-![Security sandbox beside its result, under a single stats strip](docs/screenshots/01-dashboard.png)
+![Security sandbox beside its result, with the petrol sidebar on the left](docs/screenshots/01-dashboard.png)
 
 More screenshots: [RBAC policy matrix](docs/screenshots/02-rbac-matrix.png), [chained audit log](docs/screenshots/03-audit-log.png), [phone width](docs/screenshots/04-mobile.png).
 
