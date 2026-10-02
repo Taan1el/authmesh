@@ -16,9 +16,9 @@ Teams that need to hand a service, script, or contractor a scoped, revocable cre
 
 ## Screenshot
 
-![Security sandbox with KPI cards, and a request granted against a protected endpoint](docs/screenshots/01-dashboard.png)
+![Security sandbox beside its result, under a single stats strip](docs/screenshots/01-dashboard.png)
 
-More screenshots: [RBAC policy matrix](docs/screenshots/02-rbac-matrix.png), [chained audit trail](docs/screenshots/03-audit-trail.png).
+More screenshots: [RBAC policy matrix](docs/screenshots/02-rbac-matrix.png), [chained audit log](docs/screenshots/03-audit-log.png), [phone width](docs/screenshots/04-mobile.png).
 
 ## Features
 
@@ -28,7 +28,7 @@ More screenshots: [RBAC policy matrix](docs/screenshots/02-rbac-matrix.png), [ch
 - **Hash-chained audit ledger**: every grant, denial and administrative change is linked to the previous entry by a SHA-256 hash; a verification endpoint walks the whole chain and reports the first broken block, if any.
 - **Interactive security sandbox**: dispatch a request at a protected endpoint as any seeded user or API key (including an invalid one) and see the resulting HTTP status, rate-limit headers, and response body.
 - **Tenant administration**: invite users, change roles, suspend and reactivate accounts, and view a live security-posture score built from MFA adoption, audit chain integrity and recent denials.
-- **GitHub Pages demo mode**: no backend required; the exact same policy code runs client-side against seeded, localStorage-backed data, with a "Reset demo data" control.
+- **GitHub Pages demo mode**: no backend required; the exact same policy code runs client-side against seeded, localStorage-backed data, with a "Reset sample data" control.
 
 ## Getting started
 
@@ -73,7 +73,7 @@ Run from the repo root unless noted otherwise.
 
 ## How it works
 
-`shared/` holds the RBAC and tenant logic used by both the server and the browser demo: `policy.service.ts` (wildcard permission matching), `rate-limiter.service.ts` (the sliding window), `crypto.ts` and `sha256.ts` (API key hashing and the audit hash chain, using a small dependency-free SHA-256 instead of `node:crypto` so it also runs in a browser), and `auth.service.ts` / `tenant.service.ts` (the actual RBAC decisions and tenant administration). Those two services depend only on the repository interfaces in `shared/repositories.ts`, not on a concrete database, so the server's SQLite-backed repositories and the browser demo's in-memory ones are interchangeable.
+`shared/` holds the RBAC and tenant logic used by both the server and the browser demo: `policy.service.ts` (wildcard permission matching), `rate-limiter.service.ts` (the sliding window), `crypto.ts` (API key hashing and the audit hash chain, parameterised over a SHA-256 function: the server passes `node:crypto`, the browser demo passes the small dependency-free implementation in `sha256.ts`; a parity test checks both give identical hashes), and `auth.service.ts` / `tenant.service.ts` (the actual RBAC decisions and tenant administration). Those two services depend only on the repository interfaces in `shared/repositories.ts`, not on a concrete database, so the server's SQLite-backed repositories and the browser demo's in-memory ones are interchangeable.
 
 ```mermaid
 graph TD
@@ -124,7 +124,7 @@ graph TD
 ```
 authmesh/
   client/                  React 19 + Vite operations console
-    src/components/        SecurityMetrics, PermissionMatrix, ApiKeyVault, UserDirectory, AuditLedgerFeed, SecuritySandbox, DemoBanner
+    src/components/        Header, StatsBar, PermissionMatrix, ApiKeyVault, UserDirectory, AuditLedgerFeed, SecuritySandbox, DemoBanner
     src/services/           api.ts (real), demoApi.ts + demoDatabase.ts + demoRepositories.ts + demoSeed.ts (browser demo), index.ts (the switch)
   server/                  Express API
     src/app.ts             Express app: CORS, JSON body parsing, API mount, static client build
