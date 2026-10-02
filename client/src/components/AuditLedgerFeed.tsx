@@ -8,6 +8,7 @@ interface AuditLedgerFeedProps {
   onVerifyChain: () => void;
   isVerifying: boolean;
   chainValid?: boolean;
+  deniedLast24h?: number;
 }
 
 function maskHash(hash: string): string {
@@ -19,6 +20,7 @@ export const AuditLedgerFeed: React.FC<AuditLedgerFeedProps> = ({
   onVerifyChain,
   isVerifying,
   chainValid,
+  deniedLast24h,
 }) => {
   const [filter, setFilter] = useState<'all' | 'granted' | 'denied'>('all');
   const [expandedId, setExpandedId] = useState<string | null>(null);
@@ -54,7 +56,7 @@ export const AuditLedgerFeed: React.FC<AuditLedgerFeedProps> = ({
         </div>
       </div>
 
-      <div className="filter-tabs" role="group" aria-label="Filter audit events" style={{ marginBottom: '1rem' }}>
+      <div className="filter-tabs" role="group" aria-label="Filter audit events">
         <button
           type="button"
           className={`filter-tab ${filter === 'all' ? 'active' : ''}`}
@@ -147,8 +149,9 @@ export const AuditLedgerFeed: React.FC<AuditLedgerFeedProps> = ({
         </ul>
       )}
 
-      <p className="muted" style={{ marginTop: '0.75rem' }}>
+      <p className="muted panel-foot">
         Showing {filtered.length} {pluralize(filtered.length, 'entry', 'entries')}.
+        {deniedLast24h !== undefined && ` ${deniedLast24h} denied in the last 24 hours.`}
       </p>
     </section>
   );

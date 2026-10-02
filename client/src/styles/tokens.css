@@ -1,20 +1,24 @@
 :root {
-  --paper: #faf9f6;        /* page background */
+  --paper: #eef2f5;        /* page background, cool slate */
   --surface: #ffffff;      /* panels, tables */
-  --ink: #17160f;          /* primary text */
-  --ink-2: #57544b;        /* secondary text */
-  --ink-3: #6b675d;        /* tertiary text, placeholders */
-  --rule: #e3e0d7;         /* borders and dividers */
-  --rule-strong: #cfcabd;  /* input borders, table header rule */
-  --accent: #155e75;       /* authmesh: identity */
+  --ink: #0f1b24;          /* primary text */
+  --ink-2: #44525d;        /* secondary text */
+  --ink-3: #5b6872;        /* tertiary text, placeholders */
+  --rule: #dbe3e9;         /* borders and dividers */
+  --rule-strong: #a9b6c0;  /* input borders, table header rule */
+  --accent: #155e75;       /* authmesh: petrol */
   --accent-ink: #ffffff;   /* text on accent fills */
-  --accent-soft: color-mix(in srgb, var(--accent) 10%, var(--surface));
+  --accent-soft: color-mix(in srgb, var(--accent) 9%, var(--surface));
+  --side: #0f2f3a;         /* sidebar block */
+  --side-ink: #e7eef1;     /* text on the sidebar block */
+  --side-ink-2: #a9c0c9;   /* secondary text on the sidebar block */
+  --side-rule: #234a57;    /* dividers on the sidebar block */
   /* status colors are data, not decoration: use only for status text, dots, small badges and meter fills */
   --ok: #1f7a4d;
-  --warn: #a15c00;
+  --warn: #8f5200;
   --bad: #b3261e;
   --radius: 6px;
-  --font-heading: "Sora Variable", "Sora", ui-sans-serif, system-ui, sans-serif;
-  --font-body: "Geist Variable", "Geist", ui-sans-serif, system-ui, sans-serif;
-  --font-mono: "Geist Mono Variable", "Geist Mono", ui-monospace, "SFMono-Regular", monospace;
+  --font-heading: "IBM Plex Sans Variable", "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-body: "IBM Plex Sans Variable", "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", monospace;
 }

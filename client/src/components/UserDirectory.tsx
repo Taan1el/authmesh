@@ -4,6 +4,7 @@ import { CreateUserDto, RoleName, User } from '../../../shared/types';
 
 interface UserDirectoryProps {
   users: User[];
+  mfaAdoptionPct?: number;
   onUpdateRole: (id: string, role: RoleName) => Promise<void>;
   onToggleStatus: (id: string, currentStatus: 'active' | 'suspended') => Promise<void>;
   onCreateUser: (dto: CreateUserDto) => Promise<void>;
@@ -20,6 +21,7 @@ const ROLES: { name: RoleName; label: string }[] = [
 
 export const UserDirectory: React.FC<UserDirectoryProps> = ({
   users,
+  mfaAdoptionPct,
   onUpdateRole,
   onToggleStatus,
   onCreateUser,
@@ -75,6 +77,16 @@ export const UserDirectory: React.FC<UserDirectoryProps> = ({
           Invite member
         </button>
       </div>
+
+      {mfaAdoptionPct !== undefined && (
+        <div className="meter-line">
+          <span>MFA adoption</span>
+          <span className="meter" aria-hidden="true">
+            <span className="meter-fill" style={{ width: `${mfaAdoptionPct}%` }} />
+          </span>
+          <span className="meter-value">{mfaAdoptionPct}%</span>
+        </div>
+      )}
 
       <div className="table-wrapper">
         <table className="data-table">

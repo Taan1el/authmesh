@@ -124,13 +124,23 @@ describe('AuthMesh Security Gateway Client Dashboard', () => {
     });
   });
 
-  it('renders the stats strip with the security score and member counts', async () => {
+  it('shows the security score in the sidebar footer and counts beside each view', async () => {
     render(<App />);
 
     await waitFor(() => {
       expect(screen.getByText('Security score')).toBeInTheDocument();
       expect(screen.getByText('95')).toBeInTheDocument();
-      expect(screen.getByText('Members')).toBeInTheDocument();
+      expect(screen.getByRole('tab', { name: /Members\s*\d+/ })).toBeInTheDocument();
+    });
+  });
+
+  it('shows MFA adoption on the Members view', async () => {
+    render(<App />);
+
+    fireEvent.click(await screen.findByRole('tab', { name: /Members/i }));
+
+    await waitFor(() => {
+      expect(screen.getByText('MFA adoption')).toBeInTheDocument();
       expect(screen.getByText('100%')).toBeInTheDocument();
     });
   });
