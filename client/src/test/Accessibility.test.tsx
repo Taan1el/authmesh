@@ -23,7 +23,7 @@ const audit: AuditEvent[] = [
 ];
 const metrics: TenantSecurityMetrics = { total_users: 2, active_api_keys: 1, security_score: 95, denied_events_24h: 1, audit_chain_valid: true, mfa_adoption_pct: 50 };
 
-const respond = (data: unknown) => Promise.resolve({ ok: true, json: () => Promise.resolve({ success: true, data }) });
+const respond = (data: unknown) => Promise.resolve({ ok: true, status: 200, headers: new Headers(), json: () => Promise.resolve({ success: true, data }) });
 
 async function renderApp() {
   const user = userEvent.setup();
@@ -80,6 +80,20 @@ describe('Accessibility', () => {
     await user.click(screen.getByRole('button', { name: /Invite/i }));
     await screen.findByRole('dialog', { name: /Invite member/i });
     expect(await axe(container)).toHaveNoViolations();
+  });
+
+  it.each(views)('labels every scrollable container on the %s view', async (_label, name) => {
+    const { user, container } = await renderApp();
+    await user.click(screen.getByRole('tab', { name }));
+    if (_label === 'Audit log') await user.click(screen.getAllByRole('button', { name: /Details/ })[0]);
+    if (_label === 'Sandbox') await user.click(screen.getByRole('button', { name: /Send request/ }));
+    const wrappers = container.querySelectorAll('.table-wrapper, .json-output, .dense-row-detail pre, [class*="overflow"]');
+    if (_label !== 'Sandbox' && _label !== 'Audit log') expect(wrappers.length).toBeGreaterThan(0);
+    wrappers.forEach((el) => {
+      expect(el).toHaveAttribute('role', 'region');
+      expect(el).toHaveAttribute('tabindex', '0');
+      expect(el.getAttribute('aria-label')?.trim()).toBeTruthy();
+    });
   });
 
   describe('sidebar tabs keyboard pattern', () => {
