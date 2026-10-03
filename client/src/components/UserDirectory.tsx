@@ -1,4 +1,5 @@
-import React, { useEffect, useRef, useState } from 'react';
+import { useDialog } from '../utils/useDialog';
+import React, { useRef, useState } from 'react';
 import { Lock, Plus, ShieldAlert, X } from 'lucide-react';
 import { CreateUserDto, RoleName, User } from '../../../shared/types';
 
@@ -33,22 +34,10 @@ export const UserDirectory: React.FC<UserDirectoryProps> = ({
   const [mfaEnabled, setMfaEnabled] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const nameInputRef = useRef<HTMLInputElement>(null);
+  const dialogRef = useRef<HTMLDivElement>(null);
 
   const closeModal = () => setIsModalOpen(false);
-
-  // Standard modal keyboard behavior: Escape closes it, and focus moves to
-  // the first field so keyboard and screen reader users land somewhere
-  // useful instead of on whatever was focused on the page behind it.
-  useEffect(() => {
-    if (!isModalOpen) return;
-    nameInputRef.current?.focus();
-
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') closeModal();
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isModalOpen]);
+  useDialog(isModalOpen, dialogRef, closeModal, nameInputRef);
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -155,6 +144,7 @@ export const UserDirectory: React.FC<UserDirectoryProps> = ({
         <div className="modal-overlay" onClick={closeModal}>
           <div
             className="modal-content"
+            ref={dialogRef}
             role="dialog"
             aria-modal="true"
             aria-labelledby="invite-modal-title"

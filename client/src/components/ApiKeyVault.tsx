@@ -1,4 +1,5 @@
-import React, { useEffect, useRef, useState } from 'react';
+import { useDialog } from '../utils/useDialog';
+import React, { useRef, useState } from 'react';
 import { AlertTriangle, Plus, X } from 'lucide-react';
 import { ApiKey, CreateApiKeyDto } from '../../../shared/types';
 
@@ -35,23 +36,7 @@ export const ApiKeyVault: React.FC<ApiKeyVaultProps> = ({
   const [copied, setCopied] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const nameInputRef = useRef<HTMLInputElement>(null);
-
-  // Standard modal keyboard behavior: Escape closes it, and focus moves to
-  // the first field so keyboard and screen reader users land somewhere
-  // useful instead of on whatever was focused on the page behind it.
-  useEffect(() => {
-    if (!isModalOpen) return;
-    nameInputRef.current?.focus();
-
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') closeModal();
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-    // Deliberately only re-runs when the modal opens or closes; closeModal
-    // is stable enough for this component's lifetime that re-binding on
-    // every render would just add noise.
-  }, [isModalOpen]);
+  const dialogRef = useRef<HTMLDivElement>(null);
 
   const toggleScope = (scope: string) => {
     if (selectedScopes.includes(scope)) {
@@ -94,6 +79,8 @@ export const ApiKeyVault: React.FC<ApiKeyVaultProps> = ({
     setRevealedToken(null);
     setCopied(false);
   };
+
+  useDialog(isModalOpen, dialogRef, closeModal, nameInputRef);
 
   return (
     <section className="panel" aria-labelledby="keys-title">
@@ -174,6 +161,7 @@ export const ApiKeyVault: React.FC<ApiKeyVaultProps> = ({
         <div className="modal-overlay" onClick={closeModal}>
           <div
             className="modal-content"
+            ref={dialogRef}
             role="dialog"
             aria-modal="true"
             aria-labelledby="apikey-modal-title"

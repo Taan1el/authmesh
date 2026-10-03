@@ -169,6 +169,7 @@ Every `/api/protected/*` route identifies the actor from either an `Authorizatio
 - **RBAC and tenant logic** (`server/test`, via `supertest`): the happy path for every route, permission grants and denials by role and by API key scope, rate-limit enforcement, revoked/expired keys, input validation (400s), the 404 path, and that error responses never leak internal detail.
 - **Client** (`client/src/test`, React Testing Library): dashboard rendering across every tab, the sandbox's dispatch flow (including a regression test for a bug where the first request could be sent with no selected user), keyboard access to the endpoint picker, and the create-key modal's dialog semantics and focus handling.
 - **Demo adapter** (`client/src/test/demoApi.test.ts`): the same RBAC and tenant behavior as the server tests, run against the in-memory store: seeded data, user and key administration, permission grants/denials, rate limiting, the audit hash chain, reset, and persistence across a simulated page reload.
+- **Accessibility** (`client/src/test/Accessibility.test.tsx`, `vitest-axe`): automated WCAG 2 A and AA checks on every sidebar view and both dialogs, plus keyboard tests for the sidebar tabs and the dialog focus trap. Color contrast cannot be computed in jsdom, so it is checked outside the test suite.
 
 Run everything with `npm test` (or `npm run test:server` / `npm run test:client` separately).
 

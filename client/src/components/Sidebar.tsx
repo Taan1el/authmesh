@@ -28,6 +28,19 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onRefresh,
   isRefreshing,
 }) => {
+  const handleTabKeyDown = (e: React.KeyboardEvent) => {
+    const index = ITEMS.findIndex((item) => item.id === active);
+    let next = -1;
+    if (e.key === 'ArrowDown') next = (index + 1) % ITEMS.length;
+    else if (e.key === 'ArrowUp') next = (index - 1 + ITEMS.length) % ITEMS.length;
+    else if (e.key === 'Home') next = 0;
+    else if (e.key === 'End') next = ITEMS.length - 1;
+    if (next < 0) return;
+    e.preventDefault();
+    onSelect(ITEMS[next].id);
+    document.getElementById(`tab-${ITEMS[next].id}`)?.focus();
+  };
+
   return (
     <aside className="sidebar">
       <div className="sidebar-brand">
@@ -35,7 +48,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         <p className="brand-tenant">Nordic FinTech Labs</p>
       </div>
 
-      <div className="sidebar-nav" role="tablist" aria-orientation="vertical" aria-label="AuthMesh views">
+      <div className="sidebar-nav" role="tablist" aria-orientation="vertical" aria-label="AuthMesh views" onKeyDown={handleTabKeyDown}>
         {ITEMS.map((item) => (
           <button
             key={item.id}
@@ -43,6 +56,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             type="button"
             role="tab"
             aria-selected={active === item.id}
+            tabIndex={active === item.id ? 0 : -1}
             aria-controls={`panel-${item.id}`}
             className={`nav-item ${active === item.id ? 'active' : ''}`}
             onClick={() => onSelect(item.id)}
