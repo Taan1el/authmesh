@@ -8,10 +8,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 - Automated accessibility checks (axe) for every sidebar view and both dialogs, plus keyboard tests for the sidebar tabs and the dialog focus trap.
+- A test that checks every sideways-scrolling table and code block has a keyboard focus stop, a region role and a name.
 
 ### Fixed
 - The sidebar tabs now follow the standard keyboard pattern: only the current tab is in the Tab order, Arrow Up and Arrow Down move between views with wrap-around, and Home and End jump to the first and last view.
 - The API key and invite dialogs now keep Tab and Shift+Tab inside the dialog, and focus returns to the button that opened the dialog when it closes.
+- Tables and code blocks that scroll sideways on narrow screens can now be reached and scrolled with the keyboard, and show a focus outline in the accent color.
 
 ### Changed
 - New visual identity: a dark petrol sidebar lists Sandbox, Permissions, API keys, Members and Audit log with counts, and the security score sits on one line at the bottom of it. The main column shows one panel at a time on a pale slate background, with compact tables, dot-and-text status labels and a flat meter for MFA adoption.
