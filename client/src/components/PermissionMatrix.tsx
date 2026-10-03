@@ -39,7 +39,7 @@ export const PermissionMatrix: React.FC<PermissionMatrixProps> = ({ roles }) => 
         <span className="muted">{roles.length} {pluralize(roles.length, 'role')}</span>
       </div>
 
-      <div className="table-wrapper">
+      <div className="table-wrapper" role="region" tabIndex={0} aria-label="Permissions matrix table">
         <table className="data-table matrix-table">
           <thead>
             <tr>

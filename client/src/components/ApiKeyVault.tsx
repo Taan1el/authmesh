@@ -95,7 +95,7 @@ export const ApiKeyVault: React.FC<ApiKeyVaultProps> = ({
         </button>
       </div>
 
-      <div className="table-wrapper">
+      <div className="table-wrapper" role="region" tabIndex={0} aria-label="API keys table">
         <table className="data-table">
           <thead>
             <tr>

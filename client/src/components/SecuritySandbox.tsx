@@ -269,7 +269,7 @@ export const SecuritySandbox: React.FC<SecuritySandboxProps> = ({
                 </div>
               </div>
 
-              <pre className="json-output">{JSON.stringify(lastResult.data, null, 2)}</pre>
+              <pre className="json-output" role="region" tabIndex={0} aria-label="Response body">{JSON.stringify(lastResult.data, null, 2)}</pre>
             </div>
           ) : (
             <div className="output-placeholder">

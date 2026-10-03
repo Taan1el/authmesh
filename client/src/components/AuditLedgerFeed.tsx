@@ -140,7 +140,7 @@ export const AuditLedgerFeed: React.FC<AuditLedgerFeedProps> = ({
                         <dd>{ev.hash}</dd>
                       </div>
                     </dl>
-                    <pre>{JSON.stringify(JSON.parse(ev.details), null, 2)}</pre>
+                    <pre role="region" tabIndex={0} aria-label="Event details">{JSON.stringify(JSON.parse(ev.details), null, 2)}</pre>
                   </div>
                 )}
               </li>

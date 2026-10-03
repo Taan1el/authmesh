@@ -77,7 +77,7 @@ export const UserDirectory: React.FC<UserDirectoryProps> = ({
         </div>
       )}
 
-      <div className="table-wrapper">
+      <div className="table-wrapper" role="region" tabIndex={0} aria-label="Members table">
         <table className="data-table">
           <thead>
             <tr>
