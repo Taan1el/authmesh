@@ -36,7 +36,7 @@
     "lint": "npm run lint:server && npm run lint:client"
   },
   "devDependencies": {
-    "concurrently": "^10.0.5",
+    "concurrently": "^10.0.6",
     "typescript": "^5.8.2"
   }
 }
