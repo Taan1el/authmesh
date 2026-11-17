@@ -58,6 +58,8 @@ describe('Accessibility', () => {
     ['API keys', /^API keys/],
     ['Members', /^Members/],
     ['Audit log', /^Audit log/],
+    ['Access test', /^Access test/],
+    ['Changes', /^Changes/],
   ];
 
   it.each(views)('has no violations on the %s view', async (_label, name) => {
@@ -88,7 +90,8 @@ describe('Accessibility', () => {
     if (_label === 'Audit log') await user.click(screen.getAllByRole('button', { name: /Details/ })[0]);
     if (_label === 'Sandbox') await user.click(screen.getByRole('button', { name: /Send request/ }));
     const wrappers = container.querySelectorAll('.table-wrapper, .json-output, .dense-row-detail pre, [class*="overflow"]');
-    if (_label !== 'Sandbox' && _label !== 'Audit log') expect(wrappers.length).toBeGreaterThan(0);
+    // These views show no table until something is tested, compared or verified; their tables are checked in PolicyTools.test.tsx.
+    if (!['Sandbox', 'Audit log', 'Access test', 'Changes'].includes(_label)) expect(wrappers.length).toBeGreaterThan(0);
     wrappers.forEach((el) => {
       expect(el).toHaveAttribute('role', 'region');
       expect(el).toHaveAttribute('tabindex', '0');
