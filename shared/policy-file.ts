@@ -64,6 +64,10 @@ export type PolicyParseResult =
 
 const MAX_ISSUES = 25;
 const ROLE_NAME_PATTERN = /^[a-z][a-z0-9_]*$/;
+
+export function isValidRoleNameText(value: string): boolean {
+  return value.length > 0 && value.length <= POLICY_LIMITS.roleName && ROLE_NAME_PATTERN.test(value);
+}
 const ROLE_KEYS = ['name', 'description', 'permissions'];
 const MEMBER_KEYS = ['email', 'name', 'role', 'status'];
 const TOP_KEYS = ['version', 'tenant', 'roles', 'members'];
@@ -144,7 +148,7 @@ function readRoles(out: Collector, value: unknown): PolicyRole[] {
     }
     checkKeys(out, path, item, ROLE_KEYS);
     let name = '';
-    if (typeof item.name !== 'string' || item.name.length > POLICY_LIMITS.roleName || !ROLE_NAME_PATTERN.test(item.name)) {
+    if (typeof item.name !== 'string' || !isValidRoleNameText(item.name)) {
       out.add(
         `${path}.name`,
         `expected a lowercase name of 1 to ${POLICY_LIMITS.roleName} characters using a-z, 0-9 and underscore and starting with a letter, got ${show(item.name)}`

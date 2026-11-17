@@ -128,7 +128,7 @@ describe('Accessibility', () => {
       tabs[0].focus();
       await user.keyboard('{End}');
       expect(tabs[tabs.length - 1]).toHaveFocus();
-      expect(selectedName()).toMatch(/^Audit log/);
+      expect(selectedName()).toMatch(/^Changes/);
       await user.keyboard('{Home}');
       expect(tabs[0]).toHaveFocus();
       expect(selectedName()).toMatch(/^Sandbox/);
