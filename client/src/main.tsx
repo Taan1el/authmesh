@@ -6,9 +6,14 @@ import '@fontsource/ibm-plex-mono/500.css';
 import '@fontsource/ibm-plex-mono/600.css';
 import './styles/tokens.css';
 import { App } from './App';
+import { registerOffline } from './local/offline';
+import { UpdateNotice } from './local/UpdateNotice';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
+    <UpdateNotice />
     <App />
   </React.StrictMode>
 );
+
+registerOffline();
