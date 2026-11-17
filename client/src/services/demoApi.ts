@@ -20,6 +20,7 @@ import { PolicyService } from '../../../shared/policy.service.js';
 import { RateLimiterService } from '../../../shared/rate-limiter.service.js';
 import { AuthService } from '../../../shared/auth.service.js';
 import { TenantService } from '../../../shared/tenant.service.js';
+import { requireRoute } from '../../../shared/routes.js';
 import { DemoDatabase } from './demoDatabase.js';
 import {
   DemoApiKeyRepository,
@@ -50,6 +51,13 @@ function demoUserAgent(): string {
   return typeof navigator !== 'undefined' && navigator.userAgent ? navigator.userAgent : 'AuthMesh Demo Browser';
 }
 
+// The permission and resource of each route come from shared/routes.ts, the
+// same table the Express router reads.
+function routeFields(method: 'GET' | 'POST', path: string): { permission: string; resource: string } {
+  const { permission, resource } = requireRoute(method, path);
+  return { permission, resource };
+}
+
 // Mirrors the four guarded routes in server/src/routes/api.routes.ts:
 // the same permission/resource pairs and the same canned success payloads,
 // so the Security Sandbox behaves identically against the real API and
@@ -63,8 +71,7 @@ const PROTECTED_ENDPOINTS: Record<
   }
 > = {
   billing: {
-    permission: 'billing:read',
-    resource: 'billing',
+    ...routeFields('GET', '/protected/billing'),
     respond: (actor) => ({
       success: true,
       message: 'Access granted to confidential FinTech billing records',
@@ -77,8 +84,7 @@ const PROTECTED_ENDPOINTS: Record<
     }),
   },
   'billing/invoice': {
-    permission: 'billing:write',
-    resource: 'billing',
+    ...routeFields('POST', '/protected/billing/invoice'),
     respond: (actor) => ({
       success: true,
       message: 'Invoice successfully generated and sent to SEPA billing gateway',
@@ -86,8 +92,7 @@ const PROTECTED_ENDPOINTS: Record<
     }),
   },
   users: {
-    permission: 'users:read',
-    resource: 'users',
+    ...routeFields('GET', '/protected/users'),
     respond: (actor) => ({
       success: true,
       message: 'Access granted to internal user roster',
@@ -95,8 +100,7 @@ const PROTECTED_ENDPOINTS: Record<
     }),
   },
   deploy: {
-    permission: 'deploy:execute',
-    resource: 'deploy',
+    ...routeFields('POST', '/protected/deploy'),
     respond: (actor) => ({
       success: true,
       message: 'Production Kubernetes deployment triggered successfully',

@@ -12,6 +12,7 @@ import { AuthController } from '../controllers/auth.controller.js';
 import { TenantController } from '../controllers/tenant.controller.js';
 import { createRbacMiddleware } from '../middleware/rbac.middleware.js';
 import { hashApiKey } from '../utils/crypto.js';
+import { requireRoute } from '../../../shared/routes.js';
 
 export function createApiRouter(db: DatabaseSync): Router {
   const router = Router();
@@ -30,6 +31,11 @@ export function createApiRouter(db: DatabaseSync): Router {
 
   // Middleware & Controllers
   const requirePermission = createRbacMiddleware(authService);
+  // Permissions come from shared/routes.ts, the table the policy tester also reads.
+  const guard = (method: 'GET' | 'POST', path: string) => {
+    const route = requireRoute(method, path);
+    return requirePermission(route.permission, route.resource);
+  };
   const authController = new AuthController(authService, tenantService);
   const tenantController = new TenantController(tenantService);
 
@@ -59,7 +65,7 @@ export function createApiRouter(db: DatabaseSync): Router {
   router.get('/metrics', tenantController.getMetrics);
 
   // Guarded Sandbox Simulation Endpoints
-  router.get('/protected/billing', requirePermission('billing:read', 'billing'), (req, res) => {
+  router.get('/protected/billing', guard('GET', '/protected/billing'), (req, res) => {
     res.json({
       success: true,
       message: 'Access granted to confidential FinTech billing records',
@@ -72,7 +78,7 @@ export function createApiRouter(db: DatabaseSync): Router {
     });
   });
 
-  router.post('/protected/billing/invoice', requirePermission('billing:write', 'billing'), (req, res) => {
+  router.post('/protected/billing/invoice', guard('POST', '/protected/billing/invoice'), (req, res) => {
     res.json({
       success: true,
       message: 'Invoice successfully generated and sent to SEPA billing gateway',
@@ -80,7 +86,7 @@ export function createApiRouter(db: DatabaseSync): Router {
     });
   });
 
-  router.get('/protected/users', requirePermission('users:read', 'users'), (req, res) => {
+  router.get('/protected/users', guard('GET', '/protected/users'), (req, res) => {
     res.json({
       success: true,
       message: 'Access granted to internal user roster',
@@ -88,7 +94,7 @@ export function createApiRouter(db: DatabaseSync): Router {
     });
   });
 
-  router.post('/protected/deploy', requirePermission('deploy:execute', 'deploy'), (req, res) => {
+  router.post('/protected/deploy', guard('POST', '/protected/deploy'), (req, res) => {
     res.json({
       success: true,
       message: 'Production Kubernetes deployment triggered successfully',

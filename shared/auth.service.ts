@@ -1,5 +1,6 @@
 import { IApiKeyRepository, IAuditRepository, IRoleRepository, IUserRepository } from './repositories.js';
 import { PolicyService } from './policy.service.js';
+import { decideRoleAccess, SUSPENDED_REASON, USER_NOT_FOUND_REASON } from './access-decision.js';
 import { RateLimiterService } from './rate-limiter.service.js';
 import { AccessEvaluationResult, EvaluateAccessDto } from './types.js';
 
@@ -186,7 +187,7 @@ export class AuthService {
       if (!user) {
         return {
           allowed: false,
-          reason: 'User not found in tenant organization',
+          reason: USER_NOT_FOUND_REASON,
           required_permission: requiredPermission,
         };
       }
@@ -206,7 +207,7 @@ export class AuthService {
 
         return {
           allowed: false,
-          reason: 'User account has been suspended',
+          reason: SUSPENDED_REASON,
           required_permission: requiredPermission,
           actor: { type: 'user', id: user.id, name: user.name, role: user.role },
         };
@@ -214,28 +215,27 @@ export class AuthService {
 
       const role = this.roleRepo.getRoleByName(user.role);
       const permissions = role?.permissions || [];
-      const policy = this.policyService.hasPermission(permissions, requiredPermission);
+      // The same decision function the browser policy tester calls.
+      const decision = decideRoleAccess(this.policyService, user.role, permissions, requiredPermission);
 
-      const status = policy.allowed ? 'granted' : 'denied';
+      const status = decision.allowed ? 'granted' : 'denied';
       this.auditRepo.recordAuditEvent({
         actor_type: 'user',
         actor_id: user.id,
         actor_name: user.name,
-        action: policy.allowed ? `${targetResource}.access` : 'access.forbidden',
+        action: decision.allowed ? `${targetResource}.access` : 'access.forbidden',
         resource: targetResource,
         status,
         ip_address: ipAddress,
         user_agent: userAgent,
-        details: { role: user.role, matched_scope: policy.matchingScope, requested_permission: requiredPermission },
+        details: { role: user.role, matched_scope: decision.matchingScope, requested_permission: requiredPermission },
       });
 
       return {
-        allowed: policy.allowed,
-        reason: policy.allowed
-          ? `Authorized via role '${user.role}'`
-          : `Role '${user.role}' lacks permission '${requiredPermission}'`,
+        allowed: decision.allowed,
+        reason: decision.reason,
         required_permission: requiredPermission,
-        matching_scope: policy.matchingScope,
+        matching_scope: decision.matchingScope,
         actor: { type: 'user', id: user.id, name: user.name, role: user.role },
       };
     }

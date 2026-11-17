@@ -29,6 +29,26 @@ export function isValidEmail(value: unknown): value is string {
   return typeof value === 'string' && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
 }
 
+// The permissions the sample organization's roles and API keys are built
+// from. The policy designer uses them as the default set of permissions to
+// compare roles and members against, next to any custom ones in a policy.
+export const STANDARD_PERMISSIONS = [
+  'users:read',
+  'users:write',
+  'users:delete',
+  'roles:read',
+  'roles:assign',
+  'keys:read',
+  'keys:create',
+  'keys:revoke',
+  'billing:read',
+  'billing:write',
+  'audit:read',
+  'audit:export',
+  'deploy:read',
+  'deploy:execute',
+] as const;
+
 export function isNonEmptyString(value: unknown): value is string {
   return typeof value === 'string' && value.trim().length > 0;
 }
