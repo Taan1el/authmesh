@@ -4,6 +4,25 @@ All notable changes to this project are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [1.1.0] - 2026-11-17
+
+### Added
+- An access policy designer on the Pages build. Switch Data source to "Your workspace" and import a `policy.json` file, start from the sample policy or start empty. The workspace is saved in this browser only, with a revision number, and a change made in another tab is picked up instead of overwritten.
+- A versioned policy file with roles, permissions and members. Every problem found on import is reported with its path and what was expected, and nothing is saved until the whole file is valid. Import says how many roles and members it will replace before it replaces them, and Export writes the file back out.
+- Add, edit and delete roles, and add, move, suspend and remove members, in your workspace. Editing a role shows which scopes are added or removed and which members gain or lose which permission before you save.
+- An Access test view. Pick or type a member or a role and a permission or a request such as `GET /api/protected/billing`, and see Allowed or Denied with the exact reason, the scope that matched and every role that grants it.
+- A Changes view that compares the current policy, the baseline or a policy file with another version: scopes added and removed per role, members added, removed, moved or suspended, and the permissions each member gains or loses. It exports a Markdown change review.
+- An audit log verifier under Audit log. Paste or open an exported log and see whether the hash chain is intact or where it first breaks (a changed, removed, moved or missing entry). Imported logs are shown 25 entries to a page instead of stopping at 100. In the demo, Export current log writes the demo's own log in the same format.
+- Offline use. After one visit the Pages build loads without a network. When a new version is published the page shows "A new version is ready." with a Reload button and never reloads by itself.
+- A Content-Security-Policy for the Pages build that allows no other hosts, and a line on the page saying data stays in this browser and that the tool designs and tests a policy but does not protect a live API.
+- A quiet reminder to export a backup after you change your workspace.
+- Tests for the policy file parser, the access test against the server's own decision code, the route table, the policy diff, the audit chain verifier (changed, rehashed, moved, removed and truncated entries), the browser workspace store, the import confirmation, and accessibility checks for each new screen.
+
+### Changed
+- The server and the browser now share one decision function (`shared/access-decision.ts`) and one table of guarded routes and their permissions (`shared/routes.ts`), so the Access test and the gateway cannot disagree.
+- The sidebar lists Access test and Changes after Audit log. In your workspace it hides Sandbox and API keys, which belong to the sample organization.
+- Downloaded files keep their temporary link for ten seconds before it is revoked.
+
 ## [Unreleased]
 
 ### Added

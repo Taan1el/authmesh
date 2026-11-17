@@ -1,6 +1,6 @@
 {
   "name": "@authmesh/server",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "AuthMesh Express gateway: RBAC evaluation, API key vault, rate limiting and the audit ledger",
   "private": true,
   "type": "module",

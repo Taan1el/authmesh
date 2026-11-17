@@ -1,6 +1,6 @@
 {
   "name": "authmesh",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "private": true,
   "type": "module",
   "description": "Multi-tenant RBAC gateway with scoped API keys, sliding-window rate limiting, and a cryptographically chained audit log",
